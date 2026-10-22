@@ -1,0 +1,6 @@
+{
+  "name": "Couponify",
+  "description": "Verified SaaS promo codes, startup cloud credits, student freebies, and exclusive software discounts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
