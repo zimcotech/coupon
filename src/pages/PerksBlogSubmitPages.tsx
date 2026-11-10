@@ -6,38 +6,24 @@ import {
   ArrowUpRight,
   Clock,
   Calendar,
-  ArrowLeft,
   CheckCircle2,
   Check,
-  Users,
-  MousePointerClick,
   Eye,
   Plus,
   Sparkles,
   BookOpen,
+  ArrowRight,
+  Send,
+  Building2,
+  ChevronRight,
 } from 'lucide-react';
 import {
-  Card,
-  Badge,
   Button,
-  Input,
-  Textarea,
-  Select,
-  Label,
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell,
-  Avatar,
   Breadcrumb,
-  Accordion,
-  Alert,
+  Pagination,
+  cn,
 } from '../components/ui/shadcn';
+import { CustomDropdown } from '../components/CustomDropdown';
 import { BrandLogo } from '../components/BrandLogo';
 import { PerkItem, BlogArticle, Deal, Category } from '../data/mockData';
 import { DealCard } from '../components/DealCard';
@@ -45,7 +31,7 @@ import { DealCard } from '../components/DealCard';
 // ============================================================================
 // PAGE 7: STARTUP & STUDENT PERKS PAGE (/perks)
 // ============================================================================
-interface PerksPageProps {
+export interface PerksPageProps {
   perks: PerkItem[];
   deals: Deal[];
   onNavigate: (path: string) => void;
@@ -64,171 +50,200 @@ export const PerksPage: React.FC<PerksPageProps> = ({
 
   const handleClaimPerk = (perk: PerkItem) => {
     const matchedDeal = deals.find((d) => d.slug === perk.dealSlug) || deals[0];
-    onRevealDeal(matchedDeal);
+    onNavigate(`/deals/${matchedDeal.slug}`);
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        onNavigate={onNavigate}
+        items={[{ label: 'Home', path: '/' }, { label: 'Perks & Grants' }]}
+      />
+
       {/* Hero Header */}
-      <Card className="p-5 sm:p-10 bg-muted/25">
-        <div className="max-w-3xl space-y-3 sm:space-y-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="indigo" className="text-xs">
-              <Rocket className="h-3.5 w-3.5" />
-              Founder & Academic Hub
-            </Badge>
-            <Badge variant="emerald" className="text-xs">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              $320,000+ Combined Value
-            </Badge>
-          </div>
-
-          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-            Startup Cloud Credits & Student Developer Perks
-          </h1>
-
-          <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed">
-            Compare and claim high-value infrastructure grants from AWS Activate, Google Cloud, OpenAI, and Notion—or unlock 100% free academic licenses with a verified university email.
-          </p>
-
-          <Tabs
-            value={activeTab}
-            onValueChange={(v) => setActiveTab(v as 'startup' | 'student')}
-            className="pt-2"
-          >
-            <TabsList className="w-full sm:w-auto overflow-x-auto scrollbar-none">
-              <TabsTrigger value="startup" className="text-xs">
-                <Rocket className="h-3.5 w-3.5" />
-                Startup Credits Program
-              </TabsTrigger>
-              <TabsTrigger value="student" className="text-xs">
-                <GraduationCap className="h-3.5 w-3.5" />
-                Student Education Discounts
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </Card>
-
-      {/* Comprehensive Comparison Table with Responsive Scroll Wrapper */}
-      <div className="space-y-3 sm:space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-          <h2 className="font-display text-lg sm:text-xl font-bold text-foreground">
-            {activeTab === 'startup'
-              ? 'Startup Credits Program Matrix'
-              : 'Student Developer & University Perks Matrix'}
-          </h2>
-          <span className="text-xs text-muted-foreground font-mono">
-            Showing {filteredPerks.length} Verified Programs
+      <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-4 shadow-2xs text-left">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/50">
+            <Rocket className="h-3.5 w-3.5" />
+            Founder & Academic Hub
+          </span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-900/50">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            $320,000+ Combined Value
           </span>
         </div>
 
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Brand & Program</TableHead>
-                <TableHead>Maximum Value</TableHead>
-                <TableHead>Eligibility Criteria</TableHead>
-                <TableHead>Verification Method</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPerks.map((perk) => (
-                <TableRow key={perk.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <BrandLogo brandSlug={perk.brandSlug} brandName={perk.brandName} initials={perk.brandInitials} size="sm" />
-                      <div>
-                        <p className="font-display font-bold text-foreground whitespace-nowrap text-xs sm:text-sm">{perk.brandName}</p>
-                        <p className="text-[11px] text-muted-foreground whitespace-nowrap">{perk.programTitle}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    <Badge variant="emerald" className="font-mono text-xs">
-                      {perk.maxValue}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-xs text-xs text-muted-foreground min-w-[200px]">
-                    {perk.eligibilityCriteria}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-foreground whitespace-nowrap">
-                    {perk.verificationMethod}
-                  </TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
-                    <Button size="sm" onClick={() => handleClaimPerk(perk)} className="h-8 text-xs">
-                      Claim Grant
-                      <ArrowUpRight className="h-3.5 w-3.5" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
+          Startup Cloud Credits & Student Developer Perks
+        </h1>
+
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-3xl">
+          Compare and claim high-value infrastructure grants from AWS Activate, Google Cloud, OpenAI, and Notion—or unlock 100% free academic licenses with a verified university email.
+        </p>
+
+        {/* Tab Controls */}
+        <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <button
+            type="button"
+            onClick={() => setActiveTab('startup')}
+            className={cn(
+              'h-10 px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]',
+              activeTab === 'startup'
+                ? 'bg-blue-600 text-white shadow-2xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            )}
+          >
+            <Rocket className="h-4 w-4" />
+            <span>Startup Credits Program</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('student')}
+            className={cn(
+              'h-10 px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]',
+              activeTab === 'student'
+                ? 'bg-blue-600 text-white shadow-2xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            )}
+          >
+            <GraduationCap className="h-4 w-4" />
+            <span>Student Education Discounts</span>
+          </button>
         </div>
       </div>
 
-      {/* Detailed Card Listings */}
+      {/* Program Matrix Table */}
       <div className="space-y-4">
-        <h2 className="font-display text-lg sm:text-xl font-bold text-foreground">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
+            <span>
+              {activeTab === 'startup'
+                ? 'Startup Credits Program Matrix'
+                : 'Student Developer & University Perks Matrix'}
+            </span>
+          </h2>
+          <span className="text-xs text-slate-500 font-medium">
+            {filteredPerks.length} Verified Programs
+          </span>
+        </div>
+
+        <div className="overflow-x-auto rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
+          <table className="w-full text-left text-xs sm:text-sm">
+            <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-500">
+              <tr>
+                <th className="py-3 px-4 font-semibold">Brand & Program</th>
+                <th className="py-3 px-4 font-semibold">Maximum Value</th>
+                <th className="py-3 px-4 font-semibold">Eligibility Criteria</th>
+                <th className="py-3 px-4 font-semibold">Verification Method</th>
+                <th className="py-3 px-4 font-semibold text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {filteredPerks.map((perk) => (
+                <tr key={perk.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                  <td className="py-3.5 px-4">
+                    <div className="flex items-center gap-3">
+                      <BrandLogo brandSlug={perk.brandSlug} brandName={perk.brandName} initials={perk.brandInitials} size="sm" />
+                      <div>
+                        <p className="font-semibold text-slate-900 dark:text-slate-100 whitespace-nowrap">{perk.brandName}</p>
+                        <p className="text-xs text-slate-500 whitespace-nowrap">{perk.programTitle}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4 whitespace-nowrap">
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                      {perk.maxValue}
+                    </span>
+                  </td>
+                  <td className="py-3.5 px-4 max-w-xs text-xs text-slate-500 dark:text-slate-400">
+                    {perk.eligibilityCriteria}
+                  </td>
+                  <td className="py-3.5 px-4 font-medium text-xs text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    {perk.verificationMethod}
+                  </td>
+                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                    <Button
+                      size="sm"
+                      onClick={() => handleClaimPerk(perk)}
+                      className="h-9 px-3.5 text-xs font-semibold rounded-lg cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]"
+                    >
+                      <span>Claim Grant</span>
+                      <ArrowUpRight className="h-3.5 w-3.5" />
+                    </Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Detailed Card Listings Fluid Grid */}
+      <div className="space-y-4">
+        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
           Detailed Program Breakdowns & Application Guides
         </h2>
-        <div className="grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {filteredPerks.map((perk) => (
-            <Card key={perk.id} className="p-5 sm:p-6 flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
+            <div
+              key={perk.id}
+              className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-3 text-left">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <Avatar initials={perk.brandInitials} colorClass={perk.brandColor} size="md" />
+                    <BrandLogo
+                      brandSlug={perk.brandSlug}
+                      brandName={perk.brandName}
+                      initials={perk.brandInitials}
+                      colorClass={perk.brandColor}
+                      size="md"
+                    />
                     <div>
-                      <h3 className="font-display text-sm sm:text-base font-bold text-foreground">{perk.programTitle}</h3>
-                      <p className="text-xs text-muted-foreground">{perk.brandName}</p>
+                      <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100">
+                        {perk.programTitle}
+                      </h3>
+                      <p className="text-xs text-slate-500">{perk.brandName}</p>
                     </div>
                   </div>
-                  <Badge variant="indigo" className="font-mono text-xs">
+
+                  <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200/80 dark:border-emerald-800/80 shrink-0">
                     {perk.maxValue}
-                  </Badge>
+                  </span>
                 </div>
 
-                <p className="text-xs leading-relaxed text-muted-foreground">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                   {perk.description}
                 </p>
 
-                <div className="rounded-lg bg-muted/40 p-3 space-y-1.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Verification:</span>
-                    <span className="font-mono font-medium text-foreground">{perk.verificationMethod}</span>
+                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                  <div>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">Eligibility: </span>
+                    <span className="text-slate-500">{perk.eligibilityCriteria}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Status:</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                      Applications Open
-                    </span>
+                  <div>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">Verification: </span>
+                    <span className="text-slate-500">{perk.verificationMethod}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 pt-2 border-t border-border">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 text-xs h-9"
-                  onClick={() => onNavigate(`/brands/${perk.brandSlug}`)}
-                >
-                  Brand Profile
-                </Button>
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-xs text-slate-500 font-medium">
+                  {perk.verificationMethod}
+                </span>
                 <Button
                   size="sm"
-                  className="flex-1 text-xs h-9"
                   onClick={() => handleClaimPerk(perk)}
+                  className="h-9 px-4 text-xs font-semibold rounded-lg cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]"
                 >
-                  Reveal Code
-                  <ArrowUpRight className="h-3.5 w-3.5" />
+                  Apply Now
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       </div>
@@ -237,118 +252,104 @@ export const PerksPage: React.FC<PerksPageProps> = ({
 };
 
 // ============================================================================
-// PAGE 8: BLOG & SAVINGS GUIDES PAGE (/blog AND /blog/[slug])
+// PAGE 8: SAVINGS GUIDES / BLOG PAGE (/blog)
 // ============================================================================
-interface BlogPageProps {
+export interface BlogPageProps {
   articles: BlogArticle[];
-  selectedSlug?: string;
   deals: Deal[];
+  currentSlug?: string;
+  selectedSlug?: string;
   onNavigate: (path: string) => void;
   onRevealDeal: (deal: Deal) => void;
 }
 
 export const BlogPage: React.FC<BlogPageProps> = ({
   articles,
-  selectedSlug,
   deals,
+  currentSlug,
+  selectedSlug,
   onNavigate,
   onRevealDeal,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const activeSlug = currentSlug || selectedSlug;
 
-  const activeArticle = selectedSlug
-    ? articles.find((a) => a.slug === selectedSlug) || null
-    : null;
-
-  // Standalone Article Reader View
-  if (activeArticle) {
+  // If viewing an individual article
+  if (activeSlug) {
+    const article = articles.find((a) => a.slug === activeSlug) || articles[0];
     const relatedDeals = deals.filter((d) =>
-      activeArticle.relatedDealSlugs.includes(d.slug)
+      article.relatedDealSlugs?.includes(d.slug)
     );
 
     return (
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:py-8 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
         <Breadcrumb
           onNavigate={onNavigate}
           items={[
             { label: 'Home', path: '/' },
-            { label: 'Blog & Savings Guides', path: '/blog' },
-            { label: activeArticle.title },
+            { label: 'Savings Guides', path: '/blog' },
+            { label: article.title },
           ]}
         />
 
-        <Button variant="outline" size="sm" onClick={() => onNavigate('/blog')} className="h-8 text-xs">
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to All Savings Guides
-        </Button>
-
-        <Card className="p-5 sm:p-10 space-y-6">
+        <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-10 space-y-6 shadow-2xs text-left max-w-4xl mx-auto">
           <div className="space-y-3">
-            <div className="flex flex-wrap items-center gap-2.5 text-xs text-muted-foreground">
-              <Badge variant="indigo">{activeArticle.category}</Badge>
-              <span className="inline-flex items-center gap-1 font-mono">
-                <Clock className="h-3.5 w-3.5" />
-                {activeArticle.readingTime}
+            <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span className="font-semibold text-blue-600 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-full">
+                {article.category}
               </span>
               <span>·</span>
-              <span className="inline-flex items-center gap-1 font-mono">
+              <span className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                {article.readingTime}
+              </span>
+              <span>·</span>
+              <span className="flex items-center gap-1">
                 <Calendar className="h-3.5 w-3.5" />
-                {activeArticle.publishDate}
+                {article.publishDate}
               </span>
             </div>
 
-            <h1 className="font-display text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-snug">
-              {activeArticle.title}
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
+              {article.title}
             </h1>
 
-            <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-              {activeArticle.excerpt}
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+              {article.excerpt}
             </p>
-          </div>
 
-          <div className="flex items-center gap-3 border-y border-border py-3.5">
-            <Avatar initials={activeArticle.authorInitials} size="sm" />
-            <div className="text-xs">
-              <p className="font-display font-bold text-foreground">{activeArticle.authorName}</p>
-              <p className="text-muted-foreground">{activeArticle.authorRole}</p>
+            <div className="flex items-center gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 font-bold text-xs flex items-center justify-center text-slate-700 dark:text-slate-300">
+                {article.authorInitials}
+              </div>
+              <div className="text-xs">
+                <p className="font-semibold text-slate-900 dark:text-slate-100">{article.authorName}</p>
+                <p className="text-slate-500">{article.authorRole}</p>
+              </div>
             </div>
           </div>
 
-          {/* Key Takeaways */}
-          <div className="rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-4 sm:p-5 space-y-2.5">
-            <p className="font-display text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-              Key Savings Takeaways
-            </p>
-            <ul className="space-y-2">
-              {activeArticle.keyTakeaways.map((point, idx) => (
-                <li key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-foreground">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                  <span>{point}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Article Body Sections */}
-          <div className="space-y-6 pt-2">
-            {activeArticle.sections.map((sec, idx) => (
-              <div key={idx} className="space-y-2.5">
-                <h2 className="font-display text-lg sm:text-xl font-bold text-foreground">{sec.heading}</h2>
-                <p className="text-xs sm:text-sm md:text-base leading-relaxed text-muted-foreground">
+          <div className="space-y-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+            {article.sections?.map((sec, idx) => (
+              <div key={idx} className="space-y-2">
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                  {sec.heading}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                   {sec.body}
                 </p>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
-        {/* Related Deals Mentioned in This Guide */}
+        {/* Featured Deals in this Guide */}
         {relatedDeals.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="font-display text-lg sm:text-xl font-bold text-foreground">
+          <section className="space-y-4 max-w-4xl mx-auto">
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
               Verified Promo Codes Featured in This Guide
             </h2>
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {relatedDeals.map((deal) => (
                 <DealCard
                   key={deal.id}
@@ -358,7 +359,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                 />
               ))}
             </div>
-          </div>
+          </section>
         )}
       </div>
     );
@@ -367,364 +368,401 @@ export const BlogPage: React.FC<BlogPageProps> = ({
   const featuredArticle = articles.find((a) => a.isFeatured) || articles[0];
   const categories = ['All', 'AI Tools', 'Cloud & Hosting', 'Productivity', 'Dev Tools', 'Design', 'Databases & Backend'];
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
+
   const filteredArticles = articles.filter(
     (a) => selectedCategory === 'All' || a.category === selectedCategory
   );
 
+  // Reset page when category changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
+
+  const paginatedArticles = filteredArticles.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
-      <div className="space-y-2.5">
-        <Badge variant="indigo">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
+      <div className="space-y-2 text-left">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
           <BookOpen className="h-3.5 w-3.5" />
           Couponify Editorial
-        </Badge>
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
+        </span>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
           SaaS Comparisons & Software Savings Guides
         </h1>
-        <p className="max-w-2xl text-xs sm:text-sm text-muted-foreground leading-relaxed">
-          In-depth benchmarks, cloud credit stacking playbooks, and B2B software procurement guides written by cloud architects and startup operators.
+        <p className="max-w-2xl text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          In-depth benchmarks, cloud credit stacking playbooks, and B2B software procurement guides written by engineers and startup operators.
         </p>
       </div>
 
-      {/* Featured Article Hero Card */}
-      <Card className="p-5 sm:p-8 border-indigo-500/30 bg-indigo-500/[0.02]">
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3 lg:items-center">
-          <div className="lg:col-span-2 space-y-3">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant="indigo">Featured Guide</Badge>
-              <Badge variant="secondary">{featuredArticle.category}</Badge>
-              <span className="inline-flex items-center gap-1 font-mono">
-                <Clock className="h-3.5 w-3.5" />
-                {featuredArticle.readingTime}
-              </span>
-              <span className="inline-flex items-center gap-1 font-mono">
-                <Calendar className="h-3.5 w-3.5" />
-                {featuredArticle.publishDate}
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => onNavigate(`/blog/${featuredArticle.slug}`)}
-              className="font-display text-left text-lg sm:text-2xl font-bold text-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer block leading-snug"
-            >
-              {featuredArticle.title}
-            </button>
-
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              {featuredArticle.excerpt}
-            </p>
-
-            <div className="flex items-center gap-3 pt-1">
-              <Avatar initials={featuredArticle.authorInitials} size="sm" />
-              <div className="text-xs">
-                <span className="font-display font-semibold text-foreground">{featuredArticle.authorName}</span>
-                <span className="text-muted-foreground"> · {featuredArticle.authorRole}</span>
-              </div>
-            </div>
+      {/* Featured Article Card */}
+      <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-6 text-left">
+        <div className="space-y-3 min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span className="font-semibold text-blue-600 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-full">
+              Featured Guide
+            </span>
+            <span className="font-medium text-slate-700 dark:text-slate-300">
+              {featuredArticle.category}
+            </span>
+            <span>·</span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {featuredArticle.readingTime}
+            </span>
           </div>
 
-          <div className="flex lg:justify-end pt-2 lg:pt-0">
-            <Button onClick={() => onNavigate(`/blog/${featuredArticle.slug}`)} className="w-full sm:w-auto h-9 text-xs">
-              Read Full Guide
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
+          <button
+            type="button"
+            onClick={() => onNavigate(`/blog/${featuredArticle.slug}`)}
+            className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 hover:text-blue-600 transition-colors cursor-pointer block leading-snug text-left"
+          >
+            {featuredArticle.title}
+          </button>
+
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">
+            {featuredArticle.excerpt}
+          </p>
+
+          <div className="flex items-center gap-3 pt-2">
+            <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 font-bold text-xs flex items-center justify-center text-slate-700 dark:text-slate-300">
+              {featuredArticle.authorInitials}
+            </div>
+            <div className="text-xs">
+              <span className="font-semibold text-slate-900 dark:text-slate-100">{featuredArticle.authorName}</span>
+              <span className="text-slate-500"> · {featuredArticle.authorRole}</span>
+            </div>
           </div>
         </div>
-      </Card>
 
-      {/* Category Filter Buttons */}
-      <div className="flex flex-wrap items-center gap-2">
+        <div className="shrink-0">
+          <button
+            type="button"
+            onClick={() => onNavigate(`/blog/${featuredArticle.slug}`)}
+            className="w-full sm:w-auto h-10 px-5 rounded-lg sm:rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm inline-flex items-center justify-center gap-2 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]"
+          >
+            <span>Read Full Guide</span>
+            <ArrowUpRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
         {categories.map((cat) => (
-          <Button
+          <button
             key={cat}
-            variant={selectedCategory === cat ? 'default' : 'outline'}
-            size="sm"
+            type="button"
             onClick={() => setSelectedCategory(cat)}
-            className="h-8 text-xs"
+            className={cn(
+              'whitespace-nowrap shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]',
+              selectedCategory === cat
+                ? 'bg-blue-600 text-white shadow-2xs'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800'
+            )}
           >
             {cat}
-          </Button>
+          </button>
         ))}
       </div>
 
-      {/* 3-Column Article Card Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredArticles.map((article) => (
-          <Card
-            key={article.slug}
-            className="flex flex-col justify-between p-5 sm:p-6 hover:border-indigo-500/40 transition-colors"
-          >
-            <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <Badge variant="secondary" className="text-[10px]">{article.category}</Badge>
-                <span className="inline-flex items-center gap-1 font-mono text-[11px]">
-                  <Clock className="h-3 w-3" />
-                  {article.readingTime}
+      {/* Articles Fluid Grid */}
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {paginatedArticles.map((article) => (
+            <div
+              key={article.slug}
+              onClick={() => onNavigate(`/blog/${article.slug}`)}
+              className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-all cursor-pointer flex flex-col justify-between space-y-4 group text-left"
+            >
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span className="font-semibold text-blue-600">{article.category}</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {article.readingTime}
+                  </span>
+                </div>
+
+                <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100 group-hover:text-blue-600 transition-colors line-clamp-2">
+                  {article.title}
+                </h3>
+
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                  {article.excerpt}
+                </p>
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+                <span className="font-medium text-slate-700 dark:text-slate-300">{article.authorName}</span>
+                <span className="text-blue-600 inline-flex items-center gap-1 font-semibold group-hover:translate-x-0.5 transition-transform">
+                  Read Guide
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </span>
               </div>
-
-              <button
-                type="button"
-                onClick={() => onNavigate(`/blog/${article.slug}`)}
-                className="font-display text-left text-sm sm:text-base font-bold text-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer block leading-snug"
-              >
-                {article.title}
-              </button>
-
-              <p className="text-xs leading-relaxed text-muted-foreground line-clamp-3">
-                {article.excerpt}
-              </p>
             </div>
+          ))}
+        </div>
 
-            <div className="mt-5 pt-3.5 border-t border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Avatar initials={article.authorInitials} size="sm" />
-                <div className="text-[11px]">
-                  <p className="font-display font-semibold text-foreground">{article.authorName}</p>
-                  <p className="text-muted-foreground font-mono">{article.publishDate}</p>
-                </div>
-              </div>
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onNavigate(`/blog/${article.slug}`)}
-                className="h-8 text-xs"
-              >
-                Read →
-              </Button>
-            </div>
-          </Card>
-        ))}
+        {filteredArticles.length > pageSize && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredArticles.length / pageSize)}
+            onPageChange={(p) => {
+              setCurrentPage(p);
+              window.scrollTo({ top: 350, behavior: 'smooth' });
+            }}
+            totalItems={filteredArticles.length}
+            pageSize={pageSize}
+            onPageSizeChange={(s) => {
+              setPageSize(s);
+              setCurrentPage(1);
+            }}
+            pageSizeOptions={[6, 9, 12]}
+            itemLabel="articles"
+          />
+        )}
       </div>
     </div>
   );
 };
 
 // ============================================================================
-// PAGE 9: SUBMIT A DEAL & ADVERTISE PAGE (/submit)
+// PAGE 9: SUBMIT DEAL & ADVERTISE PAGE (/submit)
 // ============================================================================
-interface SubmitAndAdvertisePageProps {
-  categories: Category[];
-  initialTab?: 'submit' | 'advertise';
-  onAddDeal: (newDeal: Deal) => void;
+export interface SubmitAndAdvertisePageProps {
+  categories?: Category[];
+  initialTab?: string;
   onNavigate: (path: string) => void;
-  onRevealDeal: (deal: Deal) => void;
+  onAddDeal?: (newDeal: Deal) => void;
+  onRevealDeal?: (deal: Deal) => void;
 }
 
 export const SubmitAndAdvertisePage: React.FC<SubmitAndAdvertisePageProps> = ({
-  categories,
   initialTab = 'submit',
-  onAddDeal,
   onNavigate,
-  onRevealDeal,
+  onAddDeal,
 }) => {
-  const [activeTab, setActiveTab] = useState<'submit' | 'advertise'>(initialTab);
-  const [brandName, setBrandName] = useState('Raycast');
-  const [websiteUrl, setWebsiteUrl] = useState('https://www.raycast.com');
-  const [dealTitle, setDealTitle] = useState('Raycast Pro Promo Code: 30% Off Annual Pro + Custom AI Commands');
-  const [promoCode, setPromoCode] = useState('RAYCAST30PRO');
-  const [discountValue, setDiscountValue] = useState('30% OFF Annual');
-  const [expirationDate, setExpirationDate] = useState('Dec 31, 2026');
-  const [categorySlug, setCategorySlug] = useState('productivity');
-  const [dealType, setDealType] = useState<Deal['dealType']>('Promo Codes');
-  const [shortDesc, setShortDesc] = useState('Supercharge your Mac workflow with instant launcher shortcuts, clipboard history, and always-on AI chat.');
-  const [redemptionStepsText, setRedemptionStepsText] = useState(
-    'Copy code RAYCAST30PRO from Couponify.\nOpen Raycast Account Settings > Billing.\nApply RAYCAST30PRO at annual checkout.'
+  const [activeTab, setActiveTab] = useState<'submit' | 'advertise'>(
+    initialTab === 'advertise' ? 'advertise' : 'submit'
   );
-  const [submittedSuccess, setSubmittedSuccess] = useState(false);
-  const [selectedAdPackage, setSelectedAdPackage] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
 
-  const selectedCatObj = categories.find((c) => c.slug === categorySlug) || categories[0];
+  const [form, setForm] = useState({
+    brandName: '',
+    title: '',
+    valueBadge: '',
+    code: '',
+    categorySlug: 'ai-tools',
+    officialUrl: '',
+    shortDescription: '',
+    contactEmail: '',
+  });
 
-  const livePreviewDeal: Deal = {
-    id: 'preview-deal',
-    slug: `${brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-promo-2026`,
-    brandSlug: 'notion',
-    brandName: brandName || 'Your Brand',
-    brandInitials: (brandName || 'YB').slice(0, 2).toUpperCase(),
-    brandColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
-    categorySlug: selectedCatObj.slug,
-    categoryName: selectedCatObj.name,
-    dealType,
-    valueBadge: discountValue || '25% OFF',
-    discountPercent: 30,
-    hasFreeTrial: true,
-    title: dealTitle || 'Your SEO Promo Code Title Appears Here',
-    shortDescription: shortDesc || 'Your concise 2-line product and offer value proposition.',
-    code: promoCode || 'COUPON2026',
-    isCodeRequired: true,
-    verifiedAgo: 'Verified Just Now',
-    verifiedTimestamp: 0,
-    views: 1,
-    clicks: 1,
-    isTrending: true,
-    expiresAt: expirationDate || 'Dec 31, 2026',
-    officialUrl: websiteUrl || 'https://example.com',
-    successRate: 100,
-    eligibility: ['Valid for new and upgrading workspace subscribers.'],
-    redemptionSteps: redemptionStepsText
-      .split('\n')
-      .map((s) => s.trim())
-      .filter(Boolean),
-  };
-
-  const handleSubmitForm = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAddDeal({
-      ...livePreviewDeal,
-      id: `custom-${Date.now()}`,
-    });
-    setSubmittedSuccess(true);
+    if (form.brandName && form.title && form.valueBadge && form.code) {
+      if (onAddDeal) {
+        const newDeal: Deal = {
+          id: `deal-user-${Date.now()}`,
+          title: form.title,
+          slug: form.title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          brandSlug: form.brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+          brandName: form.brandName,
+          brandInitials: form.brandName.slice(0, 2).toUpperCase(),
+          brandColor: 'bg-blue-600',
+          logoUrl: '',
+          categorySlug: form.categorySlug,
+          categoryName: form.categorySlug === 'ai-tools' ? 'AI Tools' : 'Developer Tools',
+          dealType: 'Promo Codes',
+          valueBadge: form.valueBadge,
+          discountPercent: 50,
+          hasFreeTrial: false,
+          code: form.code,
+          isCodeRequired: true,
+          officialUrl: form.officialUrl || 'https://example.com',
+          shortDescription: form.shortDescription || 'Community submitted deal verified by Couponify.',
+          verifiedAgo: 'Just now',
+          verifiedTimestamp: Date.now(),
+          expiresAt: 'December 2026',
+          clicks: 1,
+          views: 5,
+          successRate: 100,
+          eligibility: ['Valid for new customer sign-ups.'],
+          redemptionSteps: ['Apply code during checkout.'],
+        };
+        onAddDeal(newDeal);
+      }
+      setSubmitted(true);
+    }
   };
+
+  const adPackages = [
+    {
+      title: 'Top Banner Showcase',
+      price: '$450/week',
+      description: 'Pin your product at the top of the homepage hero banner for 100k+ monthly software buyers.',
+      features: ['100k+ impressions', 'Direct tracked CTA link', 'Custom badge highlight'],
+    },
+    {
+      title: 'Trending Deals Spotlight',
+      price: '$290/week',
+      description: 'Place your deal in the first slot of the Trending Deals carousel and category directories.',
+      features: ['Permanent verified badge', 'Featured in weekly newsletter', 'Real-time click telemetry'],
+    },
+    {
+      title: 'Sponsored Editorial Review',
+      price: '$850/article',
+      description: 'Comprehensive 1,500-word software benchmark and savings guide written by our engineering editors.',
+      features: ['Permanent SEO placement', 'Dofollow editorial links', 'Featured on homepage blog feed'],
+    },
+  ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8 space-y-8 sm:space-y-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-2">
-          <Badge variant="indigo">Partner Portal</Badge>
-          <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-            Submit a SaaS Deal or Advertise With Us
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-            List your verified promo code in the Couponify directory or book a high-intent sponsored placement in front of 280,000+ monthly founders and developers.
-          </p>
-        </div>
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
+      <Breadcrumb
+        onNavigate={onNavigate}
+        items={[{ label: 'Home', path: '/' }, { label: 'Submit & Advertise' }]}
+      />
 
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as 'submit' | 'advertise')}
-          className="w-full sm:w-auto"
-        >
-          <TabsList className="w-full sm:w-auto overflow-x-auto scrollbar-none">
-            <TabsTrigger value="submit" className="text-xs flex-1 sm:flex-none">
-              <Plus className="h-3.5 w-3.5" />
-              Submit Deal Form
-            </TabsTrigger>
-            <TabsTrigger value="advertise" className="text-xs flex-1 sm:flex-none">
-              <Sparkles className="h-3.5 w-3.5" />
-              Sponsored Ads
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+      <div className="space-y-3 text-left max-w-3xl">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
+          Partner with Couponify
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          Submit your SaaS discount code for free inclusion, or sponsor placements to reach hundreds of thousands of developers, founders, and IT buyers.
+        </p>
+
+        {/* Tab Controls */}
+        <div className="flex items-center gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('submit')}
+            className={cn(
+              'h-10 px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]',
+              activeTab === 'submit'
+                ? 'bg-blue-600 text-white shadow-2xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            )}
+          >
+            <Plus className="h-4 w-4" />
+            <span>Submit a Free Deal</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('advertise')}
+            className={cn(
+              'h-10 px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold inline-flex items-center gap-2 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]',
+              activeTab === 'advertise'
+                ? 'bg-blue-600 text-white shadow-2xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+            )}
+          >
+            <Building2 className="h-4 w-4" />
+            <span>Advertise & Sponsor</span>
+          </button>
+        </div>
       </div>
 
       {activeTab === 'submit' ? (
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          {/* Left 2 Columns: Submit Form */}
-          <Card className="lg:col-span-2 p-5 sm:p-8">
-            <h2 className="font-display text-base sm:text-lg font-bold text-foreground mb-1">
-              Submit a Verified Promo Code or Startup Offer
-            </h2>
-            <p className="text-xs text-muted-foreground mb-6">
-              All fields update the Live Deal Card Preview in real time. Submitting publishes your deal directly to the directory.
-            </p>
-
-            {submittedSuccess && (
-              <Alert variant="emerald" className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-xs font-medium">
-                  <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span>
-                    Your deal for <strong>{brandName}</strong> has been published to the directory!
-                  </span>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => onNavigate('/')} className="h-8 text-xs shrink-0">
-                  View on Home →
-                </Button>
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmitForm} className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-2xs text-left max-w-3xl">
+          {submitted ? (
+            <div className="p-8 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Deal Submitted Successfully!</h2>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                Our verification team has received your promo code. It has been added to our live directory and will be tested against checkouts.
+              </p>
+              <Button
+                variant="default"
+                onClick={() => onNavigate('/')}
+                className="h-10 px-5 text-xs rounded-lg mt-2 cursor-pointer"
+              >
+                View Live Directory
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label>Brand Name</Label>
-                  <Input
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Software Brand Name *
+                  </label>
+                  <input
+                    type="text"
                     required
-                    value={brandName}
-                    onChange={(e) => setBrandName(e.target.value)}
-                    placeholder="Raycast"
-                    className="h-10 text-xs sm:text-sm"
+                    value={form.brandName}
+                    onChange={(e) => setForm({ ...form, brandName: e.target.value })}
+                    placeholder="e.g. Supabase, Render, Cursor"
+                    className="w-full h-10 px-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
                   />
                 </div>
+
                 <div className="space-y-1.5">
-                  <Label>Official Website URL</Label>
-                  <Input
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Discount Value / Perk *
+                  </label>
+                  <input
+                    type="text"
                     required
-                    type="url"
-                    value={websiteUrl}
-                    onChange={(e) => setWebsiteUrl(e.target.value)}
-                    placeholder="https://..."
-                    className="h-10 text-xs sm:text-sm"
+                    value={form.valueBadge}
+                    onChange={(e) => setForm({ ...form, valueBadge: e.target.value })}
+                    placeholder="e.g. 50% OFF, $200 Credits"
+                    className="w-full h-10 px-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label>SEO Deal Title</Label>
-                <Input
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Deal Headline / Title *
+                </label>
+                <input
+                  type="text"
                   required
-                  value={dealTitle}
-                  onChange={(e) => setDealTitle(e.target.value)}
-                  placeholder="Raycast Pro Promo Code: 30% Off Annual Plan"
-                  className="h-10 text-xs sm:text-sm"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="e.g. Get 50% Off First 6 Months with Promo Code"
+                  className="w-full h-10 px-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label>Promo Code</Label>
-                  <Input
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Promo Code (or write 'LINK') *
+                  </label>
+                  <input
+                    type="text"
                     required
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                    placeholder="RAYCAST30"
-                    className="font-mono h-10 text-xs sm:text-sm"
+                    value={form.code}
+                    onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                    placeholder="e.g. LAUNCH50"
+                    className="w-full h-10 px-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-mono text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Discount Value Badge</Label>
-                  <Input
-                    required
-                    value={discountValue}
-                    onChange={(e) => setDiscountValue(e.target.value)}
-                    placeholder="30% OFF + $50 Credit"
-                    className="h-10 text-xs sm:text-sm"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Expiration Date</Label>
-                  <Input
-                    required
-                    value={expirationDate}
-                    onChange={(e) => setExpirationDate(e.target.value)}
-                    placeholder="Dec 31, 2026"
-                    className="h-10 text-xs sm:text-sm"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Software Category</Label>
-                  <Select
-                    value={categorySlug}
-                    onValueChange={setCategorySlug}
-                    options={categories.map((c) => ({ value: c.slug, label: c.name }))}
-                    className="w-full"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Deal Type</Label>
-                  <Select
-                    value={dealType}
-                    onValueChange={(v) => setDealType(v as Deal['dealType'])}
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Software Category
+                  </label>
+                  <CustomDropdown
+                    value={form.categorySlug}
+                    onChange={(val) => setForm({ ...form, categorySlug: val })}
                     options={[
-                      { value: 'Promo Codes', label: 'Promo Codes' },
-                      { value: 'Discounts', label: 'Discounts' },
-                      { value: 'Free Credits', label: 'Free Credits' },
-                      { value: 'Student Deals', label: 'Student Deals' },
-                      { value: 'Free Trials', label: 'Free Trials' },
+                      { value: 'ai-tools', label: 'AI Tools' },
+                      { value: 'cloud-hosting', label: 'Cloud & Hosting' },
+                      { value: 'dev-tools', label: 'Dev Tools' },
+                      { value: 'design-creative', label: 'Design & Creative' },
+                      { value: 'productivity', label: 'Productivity & Docs' },
+                      { value: 'student-startup', label: 'Student & Startup' },
                     ]}
                     className="w-full"
                   />
@@ -732,252 +770,81 @@ export const SubmitAndAdvertisePage: React.FC<SubmitAndAdvertisePageProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <Label>Short Description (2 Lines)</Label>
-                <Input
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Official Redemption URL *
+                </label>
+                <input
+                  type="url"
                   required
-                  value={shortDesc}
-                  onChange={(e) => setShortDesc(e.target.value)}
-                  className="h-10 text-xs sm:text-sm"
+                  value={form.officialUrl}
+                  onChange={(e) => setForm({ ...form, officialUrl: e.target.value })}
+                  placeholder="https://yourbrand.com/pricing"
+                  className="w-full h-10 px-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label>Step-by-Step Redemption Instructions (One step per line)</Label>
-                <Textarea
-                  required
-                  value={redemptionStepsText}
-                  onChange={(e) => setRedemptionStepsText(e.target.value)}
-                  className="text-xs sm:text-sm"
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Deal Details & Eligibility
+                </label>
+                <textarea
+                  rows={3}
+                  value={form.shortDescription}
+                  onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
+                  placeholder="Any restrictions, eligible tiers, or expiration rules..."
+                  className="w-full p-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
                 />
               </div>
 
-              <div className="pt-2">
-                <Button type="submit" size="lg" className="w-full sm:w-auto font-medium">
-                  Publish Verified Deal to Directory
-                </Button>
-              </div>
+              <button
+                type="submit"
+                className="h-10 px-6 rounded-lg sm:rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm inline-flex items-center gap-2 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]"
+              >
+                <Send className="h-4 w-4" />
+                <span>Submit Deal for Review</span>
+              </button>
             </form>
-          </Card>
-
-          {/* Right Column: Live Real-Time Deal Card Preview */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Live Real-Time Card Preview
-              </span>
-              <Badge variant="emerald" className="text-[11px]">Interactive</Badge>
-            </div>
-
-            <DealCard
-              deal={livePreviewDeal}
-              onNavigate={onNavigate}
-              onRevealDeal={onRevealDeal}
-            />
-
-            <Card className="p-4 bg-muted/30 text-xs text-muted-foreground space-y-2">
-              <p className="font-display font-semibold text-foreground">Verification Standard</p>
-              <p className="leading-relaxed">
-                Submitted deals are validated across live checkout flows to maintain high accuracy and reliable click-through rates.
-              </p>
-            </Card>
-          </div>
+          )}
         </div>
       ) : (
-        /* Tab 2: Sponsored Packages */
-        <div className="space-y-8 sm:space-y-10">
-          {/* Audience Metrics Stat Cards */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Card className="p-4 sm:p-5 flex items-center gap-4">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 shrink-0">
-                <Users className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Monthly Active Builders</p>
-                <p className="font-display font-mono text-xl sm:text-2xl font-bold text-foreground tabular-nums">
-                  284,000+
-                </p>
-              </div>
-            </Card>
-            <Card className="p-4 sm:p-5 flex items-center gap-4">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-                <MousePointerClick className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Monthly Redemptions</p>
-                <p className="font-display font-mono text-xl sm:text-2xl font-bold text-foreground tabular-nums">
-                  68,500+
-                </p>
-              </div>
-            </Card>
-            <Card className="p-4 sm:p-5 flex items-center gap-4">
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-                <Eye className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Avg. Sponsored CTR</p>
-                <p className="font-display font-mono text-xl sm:text-2xl font-bold text-foreground tabular-nums">
-                  9.4%
-                </p>
-              </div>
-            </Card>
-          </div>
-
-          {selectedAdPackage && (
-            <Alert variant="indigo" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <span className="text-xs font-medium">
-                Selected Package: <strong>{selectedAdPackage}</strong> — Slot reserved. Reach out via Contact desk to finalize live dates.
-              </span>
-              <Button size="sm" onClick={() => onNavigate('/contact')} className="h-8 text-xs shrink-0">
-                Finalize Ad Booking →
-              </Button>
-            </Alert>
-          )}
-
-          {/* 3-Tier Pricing Card Grid */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <Card className="p-5 sm:p-6 flex flex-col justify-between space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Badge variant="secondary">For Emerging Tools</Badge>
-                  <h3 className="font-display mt-3 text-lg sm:text-xl font-bold text-foreground">
-                    Community Listing
+        /* Sponsored Placement Tiers */
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {adPackages.map((pkg, idx) => (
+              <div
+                key={idx}
+                className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xs flex flex-col justify-between space-y-4 text-left"
+              >
+                <div className="space-y-2">
+                  <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100">
+                    {pkg.title}
                   </h3>
-                  <p className="font-display font-mono text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
-                    Free
+                  <p className="text-xl sm:text-2xl font-bold text-blue-600">
+                    {pkg.price}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Standard verification & permanent profile
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    {pkg.description}
                   </p>
+
+                  <ul className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-400">
+                    {pkg.features.map((feat, fIdx) => (
+                      <li key={fIdx} className="flex items-center gap-2">
+                        <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <ul className="space-y-2.5 text-xs text-foreground">
-                  {[
-                    'Dedicated /brands/[slug] SEO profile',
-                    'Active promo codes & student deals',
-                    'Included in global Command+K search',
-                    'Standard 5-day verification queue',
-                  ].map((feat, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
+                <button
+                  type="button"
+                  onClick={() => onNavigate('/contact')}
+                  className="w-full h-10 px-4 rounded-lg sm:rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-semibold text-xs sm:text-sm inline-flex items-center justify-center transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]"
+                >
+                  Book Placement
+                </button>
               </div>
-
-              <Button
-                variant="outline"
-                className="w-full text-xs h-10"
-                onClick={() => setActiveTab('submit')}
-              >
-                Submit Free Listing
-              </Button>
-            </Card>
-
-            <Card className="p-5 sm:p-6 border-indigo-600 shadow-sm flex flex-col justify-between space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Badge variant="indigo">Most Popular</Badge>
-                  <h3 className="font-display mt-3 text-lg sm:text-xl font-bold text-foreground">
-                    Homepage Featured Card
-                  </h3>
-                  <p className="font-display font-mono text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
-                    $149<span className="text-sm font-normal text-muted-foreground"> / mo</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Pinned in top row of Home & Category grids
-                  </p>
-                </div>
-
-                <ul className="space-y-2.5 text-xs text-foreground">
-                  {[
-                    'Everything in Community Listing',
-                    'Pinned Top-3 position in your category',
-                    '"Trending" Flame badge on deal cards',
-                    '1-hour priority verification & updates',
-                    'Included in Tuesday Digest (42k+ subs)',
-                  ].map((feat, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Check className="h-4 w-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <Button
-                className="w-full text-xs h-10 font-medium"
-                onClick={() => setSelectedAdPackage('Homepage Featured Card ($149/mo)')}
-              >
-                Book Featured Placement
-              </Button>
-            </Card>
-
-            <Card className="p-5 sm:p-6 flex flex-col justify-between space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Badge variant="amber">Maximum Visibility</Badge>
-                  <h3 className="font-display mt-3 text-lg sm:text-xl font-bold text-foreground">
-                    Hero Spotlight Banner
-                  </h3>
-                  <p className="font-display font-mono text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
-                    $299<span className="text-sm font-normal text-muted-foreground"> / mo</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Exclusive full-width banner above the main grid
-                  </p>
-                </div>
-
-                <ul className="space-y-2.5 text-xs text-foreground">
-                  {[
-                    'Exclusive Sponsored Spotlight Card on /',
-                    'Dedicated comparison guide in /blog',
-                    'Featured placement in Perks table',
-                    'Real-time click telemetry report',
-                    'Dedicated Slack channel with Couponify team',
-                  ].map((feat, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full text-xs h-10"
-                onClick={() => setSelectedAdPackage('Hero Spotlight Banner ($299/mo)')}
-              >
-                Reserve Hero Spotlight
-              </Button>
-            </Card>
-          </div>
-
-          {/* Advertiser FAQ */}
-          <div className="space-y-3 max-w-3xl">
-            <h2 className="font-display text-lg sm:text-xl font-bold text-foreground">
-              Advertiser & Partner Questions
-            </h2>
-            <Accordion
-              items={[
-                {
-                  id: 'ad-1',
-                  question: 'Do we need an exclusive promo code to advertise on Couponify?',
-                  answer: 'While exclusive codes convert up to 3.4x higher, you can also promote standard trial extensions, API credit grants, or annual billing discounts.',
-                },
-                {
-                  id: 'ad-2',
-                  question: 'How are outbound clicks and conversions tracked?',
-                  answer: 'We support custom UTM parameters, Impact, PartnerStack, FirstPromoter, and Rewardful links with zero redirect stripping.',
-                },
-                {
-                  id: 'ad-3',
-                  question: 'Can we swap our featured deal mid-month?',
-                  answer: 'Yes. Sponsored partners can update promo codes, change landing URLs, or rotate seasonal offers anytime.',
-                },
-              ]}
-            />
+            ))}
           </div>
         </div>
       )}

@@ -4,488 +4,330 @@ import {
   ShieldCheck,
   Wallet,
   Mail,
-  Briefcase,
   Clock,
-  CheckCircle2,
   Calendar,
   Lock,
   Scale,
-  Info,
+  CheckCircle2,
+  Send,
+  Building2,
+  MessageSquare,
+  HelpCircle,
 } from 'lucide-react';
 import {
-  Card,
-  Badge,
   Button,
-  Input,
-  Textarea,
-  Select,
-  Label,
+  Breadcrumb,
   Accordion,
-  Alert,
-  Separator,
+  cn,
 } from '../components/ui/shadcn';
+import { CustomDropdown } from '../components/CustomDropdown';
 
 // ============================================================================
 // PAGE 10: ABOUT US PAGE (/about)
 // ============================================================================
-export const AboutPage: React.FC<{ onNavigate: (path: string) => void }> = ({ onNavigate }) => {
+export const AboutPage: React.FC<{ onNavigate?: (path: string) => void }> = ({ onNavigate = () => {} }) => {
   const metrics = [
-    { label: 'Verified Deals', value: '500+ Verified Deals', sub: 'Tested weekly against live checkouts' },
-    { label: 'Cumulative Savings', value: '$2.4M+ User Savings', sub: 'Saved by software teams in 2025–2026' },
-    { label: 'Direct Vendors', value: '120+ SaaS Partners', sub: 'Direct partner & startup program feeds' },
-    { label: 'Quality Standard', value: '100% Manual Verification', sub: 'Zero scraped or fake coupon clutter' },
+    { label: 'Verified Deals', value: '500+ Active Codes', sub: 'Tested weekly against live checkout flows' },
+    { label: 'Cumulative Savings', value: '$2.4M+ Saved', sub: 'Saved by software teams in 2025–2026' },
+    { label: 'Direct Vendors', value: '120+ SaaS Partners', sub: 'Direct partner feeds and credit grants' },
+    { label: 'Quality Standard', value: '100% Tested', sub: 'Zero scraped or misleading coupon clutter' },
   ];
 
   const steps = [
     {
-      icon: <Search className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />,
-      step: 'Step 01',
+      icon: Search,
+      step: '01',
       title: 'Direct SaaS Partner Sourcing',
-      description: 'We work directly with growth and partnerships teams at leading AI, cloud, and developer tool companies to negotiate exclusive promo codes and startup credit grants.',
+      description: 'We work directly with partnerships and growth leads at leading AI, cloud, and dev tool companies to negotiate exclusive promo codes and startup credit grants.',
     },
     {
-      icon: <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />,
-      step: 'Step 02',
+      icon: ShieldCheck,
+      step: '02',
       title: 'Manual Checkout Verification',
       description: 'Every code listed on Couponify is manually tested against live Stripe, Paddle, or native billing checkouts to verify exact discount percentages and eligibility rules.',
     },
     {
-      icon: <Wallet className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />,
-      step: 'Step 03',
+      icon: Wallet,
+      step: '03',
       title: 'Instant One-Click Redemption',
       description: 'Copy verified promo codes or apply for $100k+ cloud grants with zero signup walls, spam popups, or expired bait-and-switch links.',
     },
   ];
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:py-12 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        onNavigate={onNavigate}
+        items={[{ label: 'Home', path: '/' }, { label: 'About Us' }]}
+      />
+
       {/* Hero Mission */}
-      <div className="max-w-3xl space-y-3 sm:space-y-4">
-        <Badge variant="indigo">About Couponify</Badge>
-        <h1 className="font-display text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
+      <div className="max-w-3xl space-y-3 text-left">
+        <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+          About Couponify
+        </span>
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
           Eliminating expired coupon clutter for software builders.
         </h1>
-        <p className="text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
           General-purpose coupon sites are filled with broken promo codes and deceptive popups. We built Couponify to give software engineers, indie hackers, students, and venture-backed founders a clean, high-density directory of real B2B SaaS discounts and cloud credits.
         </p>
       </div>
 
       {/* 4-Column Metric Card Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {metrics.map((m, idx) => (
-          <Card key={idx} className="p-5 sm:p-6 space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">{m.label}</p>
-            <p className="font-display font-mono text-lg sm:text-xl font-bold text-foreground tabular-nums">
+          <div
+            key={idx}
+            className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs space-y-1.5"
+          >
+            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">{m.label}</p>
+            <p className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               {m.value}
             </p>
-            <p className="text-xs text-muted-foreground">{m.sub}</p>
-          </Card>
+            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{m.sub}</p>
+          </div>
         ))}
       </div>
 
       {/* "How Couponify Works" 3-Step Visual Breakdown */}
-      <div className="space-y-5">
-        <div className="space-y-1">
-          <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground">How Couponify Works</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">
+      <div className="space-y-4">
+        <div className="space-y-1 text-left">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
+            How Couponify Works
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Our three-stage verification protocol ensures every listed code works at checkout.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {steps.map((s, idx) => (
-            <Card key={idx} className="p-5 sm:p-6 space-y-3.5">
-              <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-muted/40">
-                  {s.icon}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+          {steps.map((s, idx) => {
+            const Icon = s.icon;
+            return (
+              <div
+                key={idx}
+                className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-2xs"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="text-xs font-mono font-bold text-slate-400">
+                    Step {s.step}
+                  </span>
                 </div>
-                <span className="font-mono text-xs font-semibold text-muted-foreground">
-                  {s.step}
-                </span>
+                <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100">
+                  {s.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+                  {s.description}
+                </p>
               </div>
-              <h3 className="font-display text-base font-bold text-foreground">{s.title}</h3>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                {s.description}
-              </p>
-            </Card>
-          ))}
+            );
+          })}
         </div>
       </div>
-
-      {/* Editorial Verification CTA */}
-      <Card className="p-6 sm:p-8 bg-muted/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-        <div className="space-y-1.5 max-w-xl">
-          <h3 className="font-display text-base sm:text-lg font-bold text-foreground">
-            Run a SaaS product or developer tool?
-          </h3>
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Partner with Couponify to distribute your official promo codes, startup credits, or academic plans to over 280,000 monthly builders.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto">
-          <Button variant="outline" onClick={() => onNavigate('/contact')} className="flex-1 sm:flex-none h-9 text-xs">
-            Contact Us
-          </Button>
-          <Button onClick={() => onNavigate('/submit')} className="flex-1 sm:flex-none h-9 text-xs">
-            Submit a Deal
-          </Button>
-        </div>
-      </Card>
     </div>
   );
 };
 
 // ============================================================================
-// PAGE 11: CONTACT US PAGE (/contact)
+// PAGE 11: CONTACT & SUPPORT PAGE (/contact)
 // ============================================================================
-export const ContactPage: React.FC = () => {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [company, setCompany] = useState('');
-  const [inquiryType, setInquiryType] = useState('Partnership / Affiliate Inquiry');
-  const [message, setMessage] = useState('');
+export const ContactPage: React.FC<{ onNavigate?: (path: string) => void }> = ({ onNavigate = () => {} }) => {
   const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', subject: 'Deal Issue', message: '' });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (form.name && form.email && form.message) {
+      setSubmitted(true);
+    }
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-      <div className="space-y-2">
-        <Badge variant="indigo">Support & Partnerships</Badge>
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-          Contact the Couponify Team
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
+      {/* Breadcrumb */}
+      <Breadcrumb
+        onNavigate={onNavigate}
+        items={[{ label: 'Home', path: '/' }, { label: 'Contact Us' }]}
+      />
+
+      <div className="max-w-3xl space-y-2 text-left">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
+          Get in Touch with our Editorial Team
         </h1>
-        <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl leading-relaxed">
-          Report an expired promo code, inquire about SaaS affiliate partnerships, or book a sponsored spotlight placement.
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          Report an expired discount code, suggest a missing developer tool, or reach out for editorial partnerships.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
-        {/* Left Column: Contact Card Form */}
-        <Card className="lg:col-span-2 p-5 sm:p-8">
-          {submitted ? (
-            <Alert variant="emerald" className="space-y-3 p-6">
-              <div className="flex items-center gap-2.5 text-sm sm:text-base font-bold">
-                <CheckCircle2 className="h-5 w-5" />
-                Inquiry Received — Ref #CPN-2026-894
-              </div>
-              <p className="text-xs leading-relaxed">
-                Thank you, <strong>{fullName}</strong>. Our partnerships and verification desk has received your <strong>{inquiryType}</strong> message and will respond to <strong>{email}</strong> within 4 business hours.
-              </p>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  setSubmitted(false);
-                  setMessage('');
-                }}
-                className="h-8 text-xs"
-              >
-                Send Another Message
-              </Button>
-            </Alert>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label>Full Name</Label>
-                  <Input
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Alex Rivera"
-                    className="h-10 text-xs sm:text-sm"
-                  />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        {/* Contact Form (8 cols) */}
+        <div className="lg:col-span-8">
+          <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-5 shadow-2xs">
+            {submitted ? (
+              <div className="p-8 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="h-6 w-6" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Email Address</Label>
-                  <Input
-                    required
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="alex@company.com"
-                    className="h-10 text-xs sm:text-sm"
-                  />
-                </div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Message Received</h3>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                  Thank you for reaching out. An editor will review your inquiry within 24 business hours.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setSubmitted(false)}
+                  className="h-10 text-xs rounded-lg mt-2 cursor-pointer"
+                >
+                  Send Another Message
+                </Button>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4 text-left">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="e.g. Sarah Jenkins"
+                      className="w-full h-10 px-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label>Company / Brand Name</Label>
-                  <Input
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
-                    placeholder="Acme AI Inc."
-                    className="h-10 text-xs sm:text-sm"
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      Work Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="e.g. sarah@startup.com"
+                      className="w-full h-10 px-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
+                    />
+                  </div>
                 </div>
+
                 <div className="space-y-1.5">
-                  <Label>Inquiry Type</Label>
-                  <Select
-                    value={inquiryType}
-                    onValueChange={setInquiryType}
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Inquiry Type
+                  </label>
+                  <CustomDropdown
+                    value={form.subject}
+                    onChange={(val) => setForm({ ...form, subject: val })}
                     options={[
-                      { value: 'Report Broken Code', label: 'Report Broken Code' },
-                      { value: 'Partnership / Affiliate Inquiry', label: 'Partnership / Affiliate Inquiry' },
-                      { value: 'Sponsored Ad Booking', label: 'Sponsored Ad Booking' },
-                      { value: 'General Support', label: 'General Support' },
+                      { value: 'Deal Issue', label: 'Report Broken or Expired Deal' },
+                      { value: 'Listing Suggestion', label: 'Suggest a New SaaS Tool' },
+                      { value: 'Advertising', label: 'Partnership / Sponsored Placement' },
+                      { value: 'General', label: 'General Inquiry' },
                     ]}
                     className="w-full"
                   />
                 </div>
-              </div>
 
-              <div className="space-y-1.5">
-                <Label>Message</Label>
-                <Textarea
-                  required
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Include the deal URL, promo code, or partnership proposal details..."
-                  className="min-h-[120px] text-xs sm:text-sm"
-                />
-              </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Message Details
+                  </label>
+                  <textarea
+                    rows={4}
+                    required
+                    value={form.message}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    placeholder="Describe your issue or suggestion in detail..."
+                    className="w-full p-3.5 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus-visible:ring-2 focus-visible:ring-[#1565FF]"
+                  />
+                </div>
 
-              <Button type="submit" size="lg" className="w-full sm:w-auto font-medium">
-                Send Message
-              </Button>
-            </form>
-          )}
-        </Card>
-
-        {/* Right Column: Direct Channels & FAQ */}
-        <div className="space-y-5">
-          <div className="space-y-3">
-            <Card className="p-4 flex items-center gap-3.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 shrink-0">
-                <Mail className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Support & Verification Desk</p>
-                <p className="font-mono text-xs font-semibold text-foreground">
-                  support@couponify.io
-                </p>
-              </div>
-            </Card>
-
-            <Card className="p-4 flex items-center gap-3.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-600/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-                <Briefcase className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">SaaS Partnerships & Ads</p>
-                <p className="font-mono text-xs font-semibold text-foreground">
-                  partners@couponify.io
-                </p>
-              </div>
-            </Card>
-
-            <Card className="p-4 flex items-center gap-3.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-                <Clock className="h-4 w-4" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Average Response Time</p>
-                <p className="font-mono text-xs font-semibold text-foreground">
-                  Under 4 Hours (Mon–Fri)
-                </p>
-              </div>
-            </Card>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="font-display text-sm font-bold text-foreground">Quick Help FAQ</h3>
-            <Accordion
-              items={[
-                {
-                  id: 'ch-1',
-                  question: 'What if a promo code says "Invalid"?',
-                  answer: 'Select "Report Broken Code" in the form. Our team re-tests flagged codes within 2 hours and requests a replacement from the vendor.',
-                },
-                {
-                  id: 'ch-2',
-                  question: 'How do we update our brand logo or pricing?',
-                  answer: 'Email partners@couponify.io from your corporate domain and we will update your brand directory page.',
-                },
-              ]}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ============================================================================
-// PAGE 12: PRIVACY POLICY PAGE (/privacy)
-// ============================================================================
-export const PrivacyPolicyPage: React.FC = () => {
-  const sections = [
-    {
-      id: 'info-collect',
-      title: '1. Information We Collect',
-      body: 'Couponify operates as a public, no-login SaaS deals directory. We collect minimal telemetry: anonymous click counts when you reveal a promo code, voluntary email addresses if you subscribe to our Tuesday Deals Digest, and partner submission details when you submit a deal.',
-    },
-    {
-      id: 'cookies-analytics',
-      title: '2. Cookies & Analytics Tracking',
-      body: 'We use privacy-first, first-party analytics to measure which promo codes and categories are most helpful to users. We do not sell personal browsing profiles to third-party ad exchanges or cross-site behavioral brokers.',
-    },
-    {
-      id: 'affiliate-redirects',
-      title: '3. Outbound Affiliate Links & Third-Party Redirects',
-      body: 'When you click "Continue to Partner Site" or redeem an offer, you are directed to the external SaaS merchant (such as ElevenLabs, Cloudways, or DigitalOcean). Those merchants may set a standard affiliate attribution cookie (typically 30 to 90 days) solely to credit Couponify for the referral.',
-    },
-    {
-      id: 'data-security',
-      title: '4. Data Security & Retention',
-      body: 'All traffic to Couponify is encrypted via TLS 1.3. Newsletter subscriptions and partner contact logs are stored in encrypted databases with strict role-based access control.',
-    },
-    {
-      id: 'user-rights',
-      title: '5. User Rights (GDPR & CCPA Compliance)',
-      body: 'Under GDPR (EU/UK) and CCPA (California), you have the right to request access to, correction of, or immediate deletion of any personal data (such as your newsletter email or partner submission record).',
-    },
-    {
-      id: 'privacy-contact',
-      title: '6. Contact Information for Privacy Inquiries',
-      body: 'For any GDPR/CCPA data deletion requests or privacy questions, contact our Data Protection Officer at privacy@couponify.io.',
-    },
-  ];
-
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="indigo">
-            <Lock className="h-3 w-3" />
-            Legal & Privacy
-          </Badge>
-          <span className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
-            <Calendar className="h-3.5 w-3.5" />
-            Last Updated: October 2026
-          </span>
-        </div>
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-          Privacy Policy
-        </h1>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
-        {/* Sticky Table of Contents Sidebar */}
-        <Card className="p-4 sm:p-5 h-fit lg:sticky lg:top-24 space-y-3">
-          <p className="font-display text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Table of Contents
-          </p>
-          <ul className="space-y-1.5 text-xs">
-            {sections.map((s) => (
-              <li key={s.id}>
-                <a
-                  href={`#${s.id}`}
-                  className="text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors block py-0.5"
+                <button
+                  type="submit"
+                  className="h-10 px-5 rounded-lg sm:rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm inline-flex items-center gap-2 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-[#1565FF]"
                 >
-                  {s.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </Card>
+                  <Send className="h-4 w-4" />
+                  <span>Send Inquiry</span>
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
 
-        {/* Main Reading Column */}
-        <Card className="lg:col-span-3 p-5 sm:p-8 space-y-6">
-          {sections.map((s, idx) => (
-            <div key={s.id} id={s.id} className="space-y-2 scroll-mt-24">
-              <h2 className="font-display text-base sm:text-lg font-bold text-foreground">{s.title}</h2>
-              <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">{s.body}</p>
-              {idx < sections.length - 1 && <Separator className="pt-4" />}
+        {/* Sidebar Info (4 cols) */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-2xs">
+            <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100">
+              Direct Contact Channels
+            </h3>
+            <div className="space-y-3 text-xs text-slate-600 dark:text-slate-400">
+              <div className="flex items-center gap-3">
+                <Mail className="h-4 w-4 text-blue-600 shrink-0" />
+                <span>support@couponify.io</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Clock className="h-4 w-4 text-blue-600 shrink-0" />
+                <span>Response SLA: Within 24 hours</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Building2 className="h-4 w-4 text-blue-600 shrink-0" />
+                <span>San Francisco, CA & Remote Global</span>
+              </div>
             </div>
-          ))}
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
 // ============================================================================
-// PAGE 13: TERMS OF SERVICE & AFFILIATE DISCLOSURE PAGE (/terms)
+// PAGE 12: PRIVACY POLICY & COOKIE POLICY PAGE (/privacy)
 // ============================================================================
-export const TermsAndDisclosurePage: React.FC = () => {
+export { PrivacyAndCookiePolicyPage, PrivacyAndCookiePolicyPage as PrivacyPolicyPage } from './PrivacyAndCookiePolicyPage';
+
+// ============================================================================
+// PAGE 13: TERMS & AFFILIATE DISCLOSURE (/terms)
+// ============================================================================
+export const TermsAndDisclosurePage: React.FC<{ onNavigate?: (path: string) => void }> = ({ onNavigate = () => {} }) => {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Badge variant="indigo">
-            <Scale className="h-3 w-3" />
-            Terms & Compliance
-          </Badge>
-          <span className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
-            <Calendar className="h-3.5 w-3.5" />
-            Effective: October 2026
-          </span>
-        </div>
-        <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
-          Terms of Service & FTC Affiliate Disclosure
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
+      <Breadcrumb
+        onNavigate={onNavigate}
+        items={[{ label: 'Home', path: '/' }, { label: 'Terms & Affiliate Disclosure' }]}
+      />
+
+      <div className="max-w-3xl space-y-2 text-left">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
+          Terms of Service & Affiliate Disclosure
         </h1>
+        <p className="text-xs text-slate-400">Last updated: October 2026</p>
       </div>
 
-      {/* Clear Alert Summary Box at Top */}
-      <Alert variant="indigo" className="space-y-2">
-        <div className="flex items-center gap-2 font-bold text-xs sm:text-sm">
-          <Info className="h-4 w-4 shrink-0" />
-          Plain-English Compliance Summary
-        </div>
-        <p className="text-xs leading-relaxed">
-          Couponify is free for all users. We sustain our manual code verification team through partner referral commissions and clearly labeled sponsored placements. Using a Couponify promo code never increases the price you pay—it strictly reduces your bill or adds bonus credits.
-        </p>
-      </Alert>
-
-      <Card className="p-5 sm:p-8 space-y-6 sm:space-y-8">
-        <div className="space-y-2">
-          <h2 className="font-display text-base sm:text-lg font-bold text-foreground">
-            1. FTC Affiliate Disclosure (16 CFR Part 255)
-          </h2>
-          <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
-            In compliance with the Federal Trade Commission (FTC) guidelines, please assume that outbound links to third-party software vendors on Couponify are affiliate partner links. When you click "Reveal Code", "Claim Deal", or "Go to Official Partner Site" and subsequently purchase a subscription, Couponify may receive an affiliate commission or partner bounty from the merchant at zero extra cost to you.
+      <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-2xs text-left max-w-4xl text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+        <section className="space-y-2">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">FTC Affiliate Disclosure</h2>
+          <p>
+            Couponify is an independent reader-supported deal directory. Some of the links on this website are affiliate referral links. This means that if you click through and complete a purchase or sign up for a paid subscription, we may earn an affiliate commission at zero additional cost to you.
           </p>
-        </div>
-
-        <Separator />
-
-        <div className="space-y-2">
-          <h2 className="font-display text-base sm:text-lg font-bold text-foreground">
-            2. Coupon Accuracy & Expiration Disclaimer
-          </h2>
-          <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
-            While our editorial team manually tests promo codes and startup credit programs, third-party SaaS merchants retain sole discretion to modify, cap, or terminate promotional offers at any time without prior notice. Couponify does not guarantee that every third-party merchant will honor a promotional code if your account does not meet their specific new-customer or startup eligibility criteria.
+          <p>
+            Our editorial integrity is strictly separated from commercial relationships. We only list genuine, tested discounts and credit programs that offer real economic value to software engineers, founders, and students.
           </p>
-        </div>
+        </section>
 
-        <Separator />
-
-        <div className="space-y-2">
-          <h2 className="font-display text-base sm:text-lg font-bold text-foreground">
-            3. Acceptable Use & Intellectual Property
-          </h2>
-          <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
-            All brand names, trademarks, and initials displayed on Couponify belong to their respective software owners and are used strictly for nominative fair-use identification of promotional offers. Automated scraping, bulk harvesting of our curated verification data, or submitting fraudulent referral codes is strictly prohibited.
+        <section className="space-y-2">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Coupon Validity & Third-Party Terms</h2>
+          <p>
+            While our team manually tests coupon codes daily, software vendors reserve the right to alter or terminate promotions at their sole discretion. We recommend confirming the applied discount in the merchant's checkout summary before entering payment details.
           </p>
-        </div>
-
-        <Separator />
-
-        <div className="space-y-2">
-          <h2 className="font-display text-base sm:text-lg font-bold text-foreground">
-            4. Limitation of Liability
-          </h2>
-          <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">
-            Couponify provides directory information on an "as-is" basis. Any billing disputes, subscription renewals, or SLA claims regarding a third-party software product must be resolved directly with the respective SaaS vendor.
-          </p>
-        </div>
-      </Card>
+        </section>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,10 @@
 import React, { useState, createContext, useContext } from 'react';
 import { ChevronDown, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CustomDropdown, DropdownOption } from '../CustomDropdown';
+
+export { CustomDropdown };
+export type { DropdownOption };
 
 export function cn(...classes: (string | undefined | null | false)[]) {
   return classes.filter(Boolean).join(' ');
@@ -164,25 +169,13 @@ export function Select({
   className?: string;
 }) {
   return (
-    <div className={cn('relative inline-flex items-center', className)}>
-      <select
-        value={value}
-        onChange={(e) => onValueChange(e.target.value)}
-        className="h-10 w-full appearance-none rounded-xl border border-input bg-background pl-3.5 pr-8 py-1 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 cursor-pointer"
-      >
-        {placeholder && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
-        )}
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2.5 h-4 w-4 text-muted-foreground" />
-    </div>
+    <CustomDropdown
+      value={value}
+      onValueChange={onValueChange}
+      options={options}
+      placeholder={placeholder}
+      className={className}
+    />
   );
 }
 
@@ -280,25 +273,38 @@ export function Dialog({
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }) {
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
-        onClick={() => onOpenChange(false)}
-      />
-      <div className="relative z-50 w-full max-w-lg rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-xl">
-        <button
-          type="button"
-          onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
-          aria-label="Close modal"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        {children}
-      </div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/55 backdrop-blur-xs"
+            onClick={() => onOpenChange(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
+            className="relative z-50 w-full max-w-lg rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="absolute right-4.5 top-4.5 h-8 w-8 rounded-full border border-slate-200/90 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 flex items-center justify-center cursor-pointer transition-all shadow-xs group"
+              aria-label="Close modal"
+            >
+              <X className="h-4 w-4 transition-transform group-hover:scale-110" />
+            </button>
+            {children}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -324,22 +330,38 @@ export function Sheet({
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
 }) {
-  if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex justify-start">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-xs" onClick={() => onOpenChange(false)} />
-      <div className="relative z-50 flex h-full w-80 max-w-full flex-col border-r border-border bg-background p-6 shadow-xl">
-        <button
-          type="button"
-          onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
-          aria-label="Close drawer"
-        >
-          <X className="h-4 w-4" />
-        </button>
-        {children}
-      </div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50 flex justify-start">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/55 backdrop-blur-xs"
+            onClick={() => onOpenChange(false)}
+          />
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+            className="relative z-50 flex h-full w-80 max-w-full flex-col border-r border-border bg-background p-6 shadow-2xl"
+          >
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="absolute right-4.5 top-4.5 h-8 w-8 rounded-full border border-slate-200/90 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/90 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 flex items-center justify-center cursor-pointer transition-all shadow-xs group"
+              aria-label="Close drawer"
+            >
+              <X className="h-4 w-4 transition-transform group-hover:scale-110" />
+            </button>
+            {children}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }
 
@@ -521,11 +543,27 @@ export function Accordion({
               className="flex w-full items-center justify-between text-left text-sm font-semibold text-foreground hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
             >
               <span className="font-display">{item.question}</span>
-              <ChevronDown
-                className={cn('h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-150', isOpen && 'rotate-180')}
-              />
+              <motion.div
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                className="shrink-0 text-muted-foreground ml-2"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </motion.div>
             </button>
-            {isOpen && <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-muted-foreground">{item.answer}</p>}
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <p className="mt-2.5 text-xs sm:text-sm leading-relaxed text-muted-foreground">{item.answer}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}
@@ -624,68 +662,188 @@ export function Alert({
   return <div className={cn('relative w-full rounded-2xl border p-4 text-sm', variants[variant], className)}>{children}</div>;
 }
 
-// 18. Resourify Circular Pagination (Screenshot 3 style)
+// 18. Responsive Dynamic Pagination
+export interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  totalItems?: number;
+  pageSize?: number;
+  onPageSizeChange?: (size: number) => void;
+  pageSizeOptions?: number[];
+  className?: string;
+  showItemCount?: boolean;
+  itemLabel?: string;
+}
+
 export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
-}: {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}) {
+  totalItems,
+  pageSize,
+  onPageSizeChange,
+  pageSizeOptions,
+  className = '',
+  showItemCount = true,
+  itemLabel = 'items',
+}: PaginationProps) {
+  // If only 1 page and no items count, hide
+  if (totalPages <= 1 && (!totalItems || totalItems <= (pageSize || 10))) {
+    return null;
+  }
+
+  // Safe bounds
+  const validCurrentPage = Math.max(1, Math.min(currentPage, Math.max(1, totalPages)));
+
+  // Generate page numbers with ellipsis
+  const getPageNumbers = (): (number | 'ellipsis-start' | 'ellipsis-end')[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    if (validCurrentPage <= 4) {
+      return [1, 2, 3, 4, 5, 'ellipsis-end', totalPages];
+    }
+
+    if (validCurrentPage >= totalPages - 3) {
+      return [1, 'ellipsis-start', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+
+    return [1, 'ellipsis-start', validCurrentPage - 1, validCurrentPage, validCurrentPage + 1, 'ellipsis-end', totalPages];
+  };
+
+  const pages = getPageNumbers();
+
+  const startItem = totalItems && pageSize ? (validCurrentPage - 1) * pageSize + 1 : null;
+  const endItem = totalItems && pageSize ? Math.min(validCurrentPage * pageSize, totalItems) : null;
+
+  const handlePageClick = (page: number) => {
+    if (page === validCurrentPage || page < 1 || page > totalPages) return;
+    onPageChange(page);
+  };
+
   return (
-    <div className="flex items-center justify-center gap-1.5 sm:gap-2 pt-6">
-      <button
-        type="button"
-        disabled={currentPage <= 1}
-        onClick={() => onPageChange(currentPage - 1)}
-        className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
-        aria-label="Previous Page"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-
-      {[1, 2, 3].map((page) => (
-        <button
-          key={page}
-          type="button"
-          onClick={() => onPageChange(page)}
-          className={cn(
-            'flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer font-mono',
-            currentPage === page
-              ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-foreground'
-          )}
-        >
-          {page}
-        </button>
-      ))}
-
-      <span className="text-muted-foreground px-1 font-mono text-xs">...</span>
-
-      <button
-        type="button"
-        onClick={() => onPageChange(12)}
-        className={cn(
-          'flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer font-mono',
-          currentPage === 12
-            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm'
-              : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-foreground'
+    <div
+      className={cn(
+        'w-full flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 pb-2 text-xs select-none',
+        className
+      )}
+    >
+      {/* Left: Results Count Summary */}
+      <div className="text-slate-500 dark:text-slate-400 font-medium text-center sm:text-left">
+        {totalItems && pageSize && showItemCount ? (
+          <span>
+            Showing{' '}
+            <span className="font-semibold text-slate-900 dark:text-slate-100">
+              {startItem}–{endItem}
+            </span>{' '}
+            of{' '}
+            <span className="font-semibold text-slate-900 dark:text-slate-100">
+              {totalItems}
+            </span>{' '}
+            {itemLabel}
+          </span>
+        ) : (
+          <span>
+            Page <span className="font-semibold text-slate-900 dark:text-slate-100">{validCurrentPage}</span> of{' '}
+            <span className="font-semibold text-slate-900 dark:text-slate-100">{totalPages}</span>
+          </span>
         )}
-      >
-        12
-      </button>
+      </div>
 
-      <button
-        type="button"
-        disabled={currentPage >= totalPages}
-        onClick={() => onPageChange(currentPage + 1)}
-        className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-foreground disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
-        aria-label="Next Page"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
+      {/* Center: Pagination Controls */}
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {/* Previous Page Button */}
+        <button
+          type="button"
+          disabled={validCurrentPage <= 1}
+          onClick={() => handlePageClick(validCurrentPage - 1)}
+          className="flex h-9 px-2.5 sm:px-3 items-center justify-center gap-1 rounded-lg border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-2xs font-medium"
+          aria-label="Previous Page"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="hidden sm:inline text-xs">Prev</span>
+        </button>
+
+        {/* Mobile Compact Page Indicator */}
+        <div className="flex sm:hidden items-center px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 font-semibold text-slate-800 dark:text-slate-200">
+          <span>{validCurrentPage} / {totalPages}</span>
+        </div>
+
+        {/* Desktop / Tablet Numbered Buttons */}
+        <div className="hidden sm:flex items-center gap-1">
+          {pages.map((item, index) => {
+            if (item === 'ellipsis-start' || item === 'ellipsis-end') {
+              return (
+                <span
+                  key={`ellipsis-${index}`}
+                  className="w-8 text-center text-slate-400 font-bold select-none"
+                >
+                  …
+                </span>
+              );
+            }
+
+            const isCurrent = item === validCurrentPage;
+            return (
+              <button
+                key={item}
+                type="button"
+                onClick={() => handlePageClick(item)}
+                className={cn(
+                  'flex h-9 min-w-9 px-2.5 items-center justify-center rounded-lg text-xs font-semibold transition-all cursor-pointer select-none',
+                  isCurrent
+                    ? 'bg-blue-600 text-white font-bold shadow-xs hover:bg-blue-700'
+                    : 'border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                )}
+                aria-label={`Page ${item}`}
+                aria-current={isCurrent ? 'page' : undefined}
+              >
+                {item}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Next Page Button */}
+        <button
+          type="button"
+          disabled={validCurrentPage >= totalPages}
+          onClick={() => handlePageClick(validCurrentPage + 1)}
+          className="flex h-9 px-2.5 sm:px-3 items-center justify-center gap-1 rounded-lg border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer shadow-2xs font-medium"
+          aria-label="Next Page"
+        >
+          <span className="hidden sm:inline text-xs">Next</span>
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Right: Optional Page Size Selector */}
+      {pageSizeOptions && onPageSizeChange && pageSize ? (
+        <div className="flex items-center gap-2 text-slate-500">
+          <span className="hidden md:inline text-xs">Per page:</span>
+          <div className="flex items-center gap-1">
+            {pageSizeOptions.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => onPageSizeChange(opt)}
+                className={cn(
+                  'h-7 px-2 rounded-md text-xs font-medium transition-colors cursor-pointer',
+                  pageSize === opt
+                    ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/80 dark:text-blue-400 font-semibold'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                )}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="hidden sm:block w-20" />
+      )}
     </div>
   );
 }
@@ -725,18 +883,26 @@ export function Checkbox({
 export function Switch({
   checked,
   onCheckedChange,
+  disabled = false,
 }: {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
-      onClick={() => onCheckedChange(!checked)}
+      disabled={disabled}
+      onClick={() => {
+        if (!disabled) {
+          onCheckedChange(!checked);
+        }
+      }}
       className={cn(
-        'inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors',
+        'inline-flex h-5 w-9 shrink-0 items-center rounded-full border-2 border-transparent transition-colors',
+        disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
         checked ? 'bg-blue-600' : 'bg-muted'
       )}
     >
@@ -749,3 +915,26 @@ export function Switch({
     </button>
   );
 }
+
+// 21. Skeleton Screen Component
+export function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      aria-hidden="true"
+      className={cn('skeleton-shimmer rounded-xl select-none', className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  DealGridSkeleton,
+  DealCardSkeleton,
+  DealListRowSkeleton,
+  DealStackedRowSkeleton,
+} from '../DealGridSkeleton';
+
+

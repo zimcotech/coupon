@@ -97,7 +97,27 @@ Enhance the mobile and tablet responsiveness across Couponify's entire 13-page d
 │  - Viewport-safe padding     │          │  - Dynamic max-height        │
 │  - Instant copy state        │          │  - Touch dismissible         │
 └──────────────────────────────┘          └──────────────────────────────┘
-```
+## 5. Software Vertical Category Badges System (Completed)
+
+- **Dedicated `CategoryBadge` Component (`src/components/CategoryBadge.tsx`)**:
+  - Replaced subtle text labels with high-visibility, color-coded icon badges.
+  - **AI Tools**: Emerald green background (`bg-emerald-50 text-emerald-800 border-emerald-200/90`) with `Bot` icon.
+  - **Cloud & Hosting**: Sky blue background (`bg-sky-50 text-sky-800 border-sky-200/90`) with `Cloud` icon.
+  - **Dev Tools**: Violet purple background (`bg-violet-50 text-violet-800 border-violet-200/90`) with `Terminal` icon.
+  - **Productivity**: Amber gold background (`bg-amber-50 text-amber-900 border-amber-200/90`) with `Zap` icon.
+  - **Design**: Fuchsia rose background (`bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200/90`) with `Palette` icon.
+  - **Marketing**: Teal background (`bg-teal-50 text-teal-800 border-teal-200/90`) with `TrendingUp` icon.
+  - **Security**: Rose red background (`bg-rose-50 text-rose-800 border-rose-200/90`) with `Shield` icon.
+  - **Databases & Backend**: Indigo slate background (`bg-indigo-50 text-indigo-800 border-indigo-200/90`) with `Database` icon.
+- **Surface Coverage**:
+  - `DealCard.tsx` (primary catalog grid, bookmarked cards, category detail grids)
+  - `HomeAndDealPages.tsx` (New Arrivals list rows, Trending Deals cards, Deal Detail header, Related Deals list)
+  - `LayoutShell.tsx` (Reveal Code / Claim Deal modal)
+  - `BrandsAndCategoriesPages.tsx` (Brand detail active deals, Category directory cards, Category header)
+- **Contrast & Ergonomics**:
+  - Fully WCAG AA compliant contrast ratios in light and dark themes.
+  - Clickable navigation triggers routing to `/categories/:slug` with touch-friendly hit areas and interactive hover states.
+
 
 ### Planned Code Updates (Upon Approval)
 1. **`index.html`**: Update Google Fonts preconnect and stylesheets to include `Outfit:wght@500;600;700`, `Inter:wght@400;500;600`, and `JetBrains Mono:wght@400;500;600`.
