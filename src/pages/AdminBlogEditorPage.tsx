@@ -35,7 +35,7 @@ export interface AdminBlogEditorPageProps {
   articles: BlogArticle[];
   deals: Deal[];
   onAddArticle?: (newArticle: BlogArticle) => void;
-  onUpdateArticle?: (updatedArticle: BlogArticle) => void;
+  onUpdateArticle?: (updatedArticle: BlogArticle, originalSlug?: string) => void;
   onNavigate: (path: string) => void;
 }
 
@@ -105,9 +105,17 @@ export const AdminBlogEditorPage: React.FC<AdminBlogEditorPageProps> = ({
   const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [isLinkBarOpen, setIsLinkBarOpen] = useState(false);
   const [linkAnchorInput, setLinkAnchorInput] = useState('');
-  const [linkUrlInput, setLinkUrlInput] = useState('https://couponify.app/deals/');
+  const [linkUrlInput, setLinkUrlInput] = useState('/deals/');
   const [copiedLink, setCopiedLink] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
+
+  const wordCount = useMemo(() => {
+    const cleaned = content.replace(/[#*`>|[\]()-]/g, ' ').trim();
+    if (!cleaned) return 0;
+    return cleaned.split(/\s+/).filter(Boolean).length;
+  }, [content]);
+
+  const estimatedReadMinutes = Math.max(1, Math.ceil(wordCount / 200));
 
   const showNotification = (msg: string) => {
     setNotification(msg);
@@ -228,7 +236,7 @@ export const AdminBlogEditorPage: React.FC<AdminBlogEditorPageProps> = ({
     };
 
     if (isEditing) {
-      if (onUpdateArticle) onUpdateArticle(newOrUpdatedArticle);
+      if (onUpdateArticle) onUpdateArticle(newOrUpdatedArticle, existingArticle?.slug);
       showNotification(`Updated article "${newOrUpdatedArticle.title}".`);
     } else {
       if (onAddArticle) onAddArticle(newOrUpdatedArticle);
@@ -375,7 +383,7 @@ export const AdminBlogEditorPage: React.FC<AdminBlogEditorPageProps> = ({
               {/* Quick Category Chips */}
               <div className="flex flex-wrap items-center gap-1.5 pt-1">
                 <span className="text-[11px] text-slate-400 font-medium">Quick categories:</span>
-                {['AI Tools', 'Cloud & Hosting', 'SaaS Deals', 'Startup Perks', 'Student Perks'].map((cat) => (
+                {['AI Tools', 'Cloud & Hosting', 'SaaS Deals', 'Startup Packs', 'Student Packs'].map((cat) => (
                   <button
                     key={cat}
                     type="button"
@@ -579,6 +587,20 @@ export const AdminBlogEditorPage: React.FC<AdminBlogEditorPageProps> = ({
                       type="button"
                       onClick={() =>
                         insertMarkdown(
+                          '\n\n| Feature / Tier | Standard Pricing | Verified Partner Deal |\n| --- | --- | --- |\n| ',
+                          ' | $20/mo | 50% Off |\n\n',
+                          'Pro Plan'
+                        )
+                      }
+                      title="Insert Comparison Table"
+                      className="px-2 py-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1 cursor-pointer"
+                    >
+                      <Layers className="h-3.5 w-3.5" /> Table
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        insertMarkdown(
                           '\n\n```bash\n# Code snippet\n',
                           '\n```\n',
                           'curl -X GET https://couponify.app/api/deals'
@@ -603,42 +625,78 @@ export const AdminBlogEditorPage: React.FC<AdminBlogEditorPageProps> = ({
                     >
                       <ImageIcon className="h-3.5 w-3.5" />
                     </button>
+                    <div className="ml-auto flex items-center gap-2 pr-1 text-[11px] font-mono text-slate-400">
+                      <span>{wordCount} words</span>
+                      <span>·</span>
+                      <button
+                        type="button"
+                        onClick={() => setReadingTime(`${estimatedReadMinutes} min read`)}
+                        title="Click to sync reading time with word count"
+                        className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        ~{estimatedReadMinutes} min read
+                      </button>
+                    </div>
                   </div>
 
                   {/* Inline Link Prompt Bar */}
                   {isLinkBarOpen && (
-                    <div className="p-3 bg-blue-50/70 dark:bg-blue-950/50 border-b border-blue-200 dark:border-blue-900/60 flex flex-wrap items-center gap-2 text-xs">
-                      <span className="font-semibold text-blue-700 dark:text-blue-300">
-                        Nest Link:
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="Anchor text (e.g. Vultr $300 Credits)"
-                        value={linkAnchorInput}
-                        onChange={(e) => setLinkAnchorInput(e.target.value)}
-                        className="h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex-1 min-w-[150px] focus:outline-none focus:border-blue-600"
-                      />
-                      <input
-                        type="text"
-                        placeholder="URL (e.g. /deals/300-vultr-free-credits or https://...)"
-                        value={linkUrlInput}
-                        onChange={(e) => setLinkUrlInput(e.target.value)}
-                        className="h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex-1 min-w-[200px] font-mono focus:outline-none focus:border-blue-600"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleApplyLink}
-                        className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold cursor-pointer shadow-xs"
-                      >
-                        Insert Link
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsLinkBarOpen(false)}
-                        className="h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                      >
-                        Cancel
-                      </button>
+                    <div className="p-3 bg-blue-50/70 dark:bg-blue-950/50 border-b border-blue-200 dark:border-blue-900/60 space-y-2.5 text-xs">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold text-blue-700 dark:text-blue-300">
+                          Nest Link:
+                        </span>
+                        <input
+                          type="text"
+                          placeholder="Anchor text (e.g. Vultr $300 Credits)"
+                          value={linkAnchorInput}
+                          onChange={(e) => setLinkAnchorInput(e.target.value)}
+                          className="h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex-1 min-w-[150px] focus:outline-none focus:border-blue-600"
+                        />
+                        <input
+                          type="text"
+                          placeholder="URL (e.g. /deals/300-vultr-free-credits-promo-code)"
+                          value={linkUrlInput}
+                          onChange={(e) => setLinkUrlInput(e.target.value)}
+                          className="h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex-1 min-w-[200px] font-mono focus:outline-none focus:border-blue-600"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyLink}
+                          className="h-8 px-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold cursor-pointer shadow-xs"
+                        >
+                          Insert Link
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsLinkBarOpen(false)}
+                          className="h-8 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      {deals && deals.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-blue-200/60 dark:border-blue-900/40">
+                          <span className="text-[11px] font-medium text-blue-700/80 dark:text-blue-300/80">
+                            Quick link internal deal:
+                          </span>
+                          {deals.slice(0, 6).map((d) => (
+                            <button
+                              key={d.id}
+                              type="button"
+                              onClick={() => {
+                                if (!linkAnchorInput.trim()) {
+                                  setLinkAnchorInput(`${d.brandName} (${d.valueBadge})`);
+                                }
+                                setLinkUrlInput(`/deals/${d.slug}`);
+                              }}
+                              className="text-[10px] font-medium px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-800 text-slate-700 dark:text-slate-300 hover:border-blue-500 cursor-pointer"
+                            >
+                              {d.brandName}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 

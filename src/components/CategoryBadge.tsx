@@ -69,7 +69,7 @@ export function getCategoryBadgeConfig(categorySlug: string): CategoryBadgeConfi
         bgClass: 'bg-teal-50 dark:bg-teal-950/60',
         textClass: 'text-teal-700 dark:text-teal-300',
         borderClass: 'border-teal-200/80 dark:border-teal-800/80',
-        label: 'Student Perks',
+        label: 'Student Packs',
       };
     case 'security-vpn':
       return {

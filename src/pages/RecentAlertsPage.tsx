@@ -141,7 +141,7 @@ export const RecentAlertsPage: React.FC<RecentAlertsPageProps> = ({
           </h1>
 
           <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
-            Real-time feed of hand-tested coupon codes, limited-time flash discounts, and newly verified software perks.
+            Real-time feed of hand-tested coupon codes, limited-time flash discounts, and newly verified software packs.
             Every deal is checkout-tested to guarantee it works.
           </p>
 
@@ -393,7 +393,7 @@ export const RecentAlertsPage: React.FC<RecentAlertsPageProps> = ({
         </h3>
 
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-          Subscribe to our alert stream to get instant email pings when high-value perks from OpenAI, Google Cloud, Canva, and AWS drop.
+          Subscribe to our alert stream to get instant email pings when high-value packs from OpenAI, Google Cloud, Canva, and AWS drop.
         </p>
 
         {subscribed ? (

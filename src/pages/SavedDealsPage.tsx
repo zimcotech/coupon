@@ -13,6 +13,9 @@ import { Button, Breadcrumb, Pagination } from '../components/ui/shadcn';
 import { DealCard } from '../components/DealCard';
 import { DealGridSkeleton } from '../components/DealGridSkeleton';
 import { useDealsLoading } from '../context/DealsLoadingContext';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import { motion, AnimatePresence } from 'framer-motion';
+import { dealGridContainerVariants } from '../utils/motionVariants';
 
 interface SavedDealsPageProps {
   allDeals: Deal[];
@@ -31,6 +34,12 @@ export const SavedDealsPage: React.FC<SavedDealsPageProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(9);
   const { isSectionLoading, triggerLazyFetch } = useDealsLoading();
+
+  // Scroll-based loading trigger for Saved Deals grid
+  const [savedGridRef, savedGridVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
 
   // Filter deals to only saved ones
   const savedDeals = useMemo(() => {
@@ -189,20 +198,30 @@ export const SavedDealsPage: React.FC<SavedDealsPageProps> = ({
 
           {/* Deal Cards Fluid Grid with Shimmer Skeleton */}
           {filteredDeals.length > 0 ? (
-            <div className="space-y-6">
-              {isSectionLoading('saved-deals') ? (
+            <div ref={savedGridRef} className="space-y-6">
+              {!savedGridVisible || isSectionLoading('saved-deals') ? (
                 <DealGridSkeleton count={Math.min(filteredDeals.length, pageSize)} />
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  {paginatedDeals.map((deal) => (
-                    <DealCard
-                      key={deal.id}
-                      deal={deal}
-                      onNavigate={onNavigate}
-                      onRevealDeal={onRevealDeal}
-                    />
-                  ))}
-                </div>
+                <motion.div
+                  key={`saved-deals-${selectedCategory}-${searchQuery}-${currentPage}`}
+                  variants={dealGridContainerVariants}
+                  initial="hidden"
+                  animate="show"
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                >
+                  <AnimatePresence mode="popLayout">
+                    {paginatedDeals.map((deal) => (
+                      <DealCard
+                        key={deal.id}
+                        layout="position"
+                        layoutId={`saved-deal-${deal.id}`}
+                        deal={deal}
+                        onNavigate={onNavigate}
+                        onRevealDeal={onRevealDeal}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
               )}
 
               {filteredDeals.length > pageSize && (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, HTMLMotionProps } from 'framer-motion';
 import {
   Flame,
   Layers,
@@ -9,26 +9,43 @@ import {
   KeyRound,
   ArrowUpRight,
 } from 'lucide-react';
-import { Button } from './ui/shadcn';
+import { Button, cn } from './ui/shadcn';
 import { BrandLogo } from './BrandLogo';
 import { CategoryBadge } from './CategoryBadge';
-import { Deal } from '../data/mockData';
+import { Deal, hasCouponCode } from '../data/mockData';
+import { dealCardItemVariants, springTransition } from '../utils/motionVariants';
 
-interface DealCardProps {
+export interface DealCardProps extends HTMLMotionProps<'div'> {
   deal: Deal;
   onNavigate: (path: string) => void;
   onRevealDeal: (deal: Deal) => void;
+  layoutId?: string;
+  enableHoverEffect?: boolean;
 }
 
-export const DealCard: React.FC<DealCardProps> = ({ deal, onNavigate, onRevealDeal }) => {
+export const DealCard: React.FC<DealCardProps> = ({
+  deal,
+  onNavigate,
+  onRevealDeal,
+  layoutId,
+  layout = 'position',
+  variants = dealCardItemVariants,
+  enableHoverEffect = true,
+  className = '',
+  ...motionProps
+}) => {
   return (
     <motion.div
-      whileHover={{ y: -3 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-      className="h-full flex flex-col cursor-pointer"
+      layout={layout}
+      layoutId={layoutId ?? `deal-card-${deal.id}`}
+      variants={variants}
+      whileHover={enableHoverEffect ? { y: -3 } : undefined}
+      transition={springTransition}
+      className={cn('h-full flex flex-col cursor-pointer', className)}
       onClick={() => onNavigate(`/deals/${deal.slug}`)}
+      {...motionProps}
     >
-      <div className="group h-full flex flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-shadow">
+      <div className="group h-full flex flex-col justify-between rounded-xl sm:rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 active:scale-[0.99] transition-all">
         <div className="space-y-3">
           {/* Card Header: Brand Logo + Brand Info (min-w-0 flex-1) + Compact Pill Badge */}
           <div className="flex items-start justify-between gap-3">
@@ -137,31 +154,42 @@ export const DealCard: React.FC<DealCardProps> = ({ deal, onNavigate, onRevealDe
             </div>
           </div>
 
-          <Button
-            variant={deal.isCodeRequired ? 'default' : 'emerald'}
-            className="w-full justify-between h-9 sm:h-10 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl focus-visible:ring-2 focus-visible:ring-[#1565FF] px-3 sm:px-4 cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRevealDeal(deal);
-            }}
-          >
-            <span className="inline-flex items-center gap-2 truncate">
-              {deal.isCodeRequired ? (
-                <>
-                  <KeyRound className="h-4 w-4 shrink-0" />
-                  <span>Reveal Code</span>
-                </>
-              ) : (
-                <>
-                  <ArrowUpRight className="h-4 w-4 shrink-0" />
-                  <span>Claim Deal</span>
-                </>
-              )}
-            </span>
-            <span className="rounded bg-black/15 dark:bg-white/15 px-2 py-0.5 font-mono text-[11px] sm:text-xs font-bold tracking-wider shrink-0">
-              {deal.code.slice(0, 5)}***
-            </span>
-          </Button>
+          {(() => {
+            const isCoupon = hasCouponCode(deal);
+            return (
+              <Button
+                variant={isCoupon ? 'default' : 'emerald'}
+                className="w-full justify-between h-9 sm:h-10 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl focus-visible:ring-2 focus-visible:ring-[#1565FF] px-3 sm:px-4 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRevealDeal(deal);
+                }}
+              >
+                <span className="inline-flex items-center gap-2 truncate">
+                  {isCoupon ? (
+                    <>
+                      <KeyRound className="h-4 w-4 shrink-0" />
+                      <span>Reveal Code</span>
+                    </>
+                  ) : (
+                    <>
+                      <ArrowUpRight className="h-4 w-4 shrink-0" />
+                      <span>Claim Deal</span>
+                    </>
+                  )}
+                </span>
+                {isCoupon ? (
+                  <span className="rounded bg-black/15 dark:bg-white/15 px-2 py-0.5 font-mono text-[11px] sm:text-xs font-bold tracking-wider shrink-0">
+                    {deal.code ? `${deal.code.slice(0, 5)}***` : 'CODE***'}
+                  </span>
+                ) : (
+                  <span className="rounded bg-black/15 dark:bg-white/15 px-2 py-0.5 text-[10.5px] sm:text-xs font-semibold tracking-wide shrink-0">
+                    Direct Link ↗
+                  </span>
+                )}
+              </Button>
+            );
+          })()}
         </div>
       </div>
     </motion.div>

@@ -133,7 +133,7 @@ export const CookiePolicyPage: React.FC<{ onNavigate?: (path: string) => void }>
       name: 'couponify_affiliate_click',
       category: 'Affiliate & Tracking',
       provider: 'Couponify / Merchant Partners',
-      purpose: 'Validates outbound coupon redemption clicks so discount rates and exclusive merchant perks are honored.',
+      purpose: 'Validates outbound coupon redemption clicks so discount rates and exclusive merchant packs are honored.',
       duration: '30 Days',
     },
     {
@@ -407,7 +407,7 @@ export const CookiePolicyPage: React.FC<{ onNavigate?: (path: string) => void }>
             3. Affiliate Tracking & Merchant Promo Codes
           </h2>
           <p>
-            Couponify is an independent reader-supported deal directory. When you click <strong className="text-slate-900 dark:text-slate-100">"Reveal Code"</strong>, <strong className="text-slate-900 dark:text-slate-100">"Get Deal"</strong>, or <strong className="text-slate-900 dark:text-slate-100">"Claim Perk"</strong>, you may be redirected to the vendor's official checkout website via an affiliate referral link.
+            Couponify is an independent reader-supported deal directory. When you click <strong className="text-slate-900 dark:text-slate-100">"Reveal Code"</strong>, <strong className="text-slate-900 dark:text-slate-100">"Get Deal"</strong>, or <strong className="text-slate-900 dark:text-slate-100">"Claim Pack"</strong>, you may be redirected to the vendor's official checkout website via an affiliate referral link.
           </p>
           <div className="p-4 rounded-xl bg-blue-50/50 dark:bg-blue-950/30 border border-blue-500/20 text-xs sm:text-sm text-slate-700 dark:text-slate-300 space-y-2">
             <div className="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1.5">

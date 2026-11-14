@@ -23,31 +23,17 @@ interface DealsLoadingProviderProps {
 }
 
 export const DealsLoadingProvider: React.FC<DealsLoadingProviderProps> = ({ children }) => {
-  // Global loading state: initially true for 450ms to simulate asynchronous lazy fetching on cold start
-  const [isGlobalLoading, setIsGlobalLoading] = useState<boolean>(true);
+  // Global loading state: defaults to false so scroll-based IntersectionObserver governs viewport rendering
+  const [isGlobalLoading, setIsGlobalLoading] = useState<boolean>(false);
   const [sectionLoadingMap, setSectionLoadingMap] = useState<Record<string, boolean>>({
-    'verified-deals': true,
-    'black-friday': true,
-    'new-arrivals': true,
+    'verified-deals': false,
+    'black-friday': false,
+    'new-arrivals': false,
     'search-deals': false,
     'brand-deals': false,
     'category-deals': false,
+    'related-deals': false,
   });
-
-  // Initial lazy fetch simulation to demonstrate the zero-shift skeleton shimmer on page boot
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsGlobalLoading(false);
-      setSectionLoadingMap((prev) => ({
-        ...prev,
-        'verified-deals': false,
-        'black-friday': false,
-        'new-arrivals': false,
-      }));
-    }, 450);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const isSectionLoading = useCallback(
     (sectionId: string): boolean => {

@@ -21,6 +21,8 @@ import {
   ArrowRight,
   TrendingUp,
   SlidersHorizontal,
+  Sparkles,
+  ArrowUpRight,
 } from 'lucide-react';
 import {
   Button,
@@ -29,13 +31,12 @@ import {
   DialogTitle,
   DialogDescription,
   Sheet,
-  Separator,
   cn,
 } from './ui/shadcn';
 import { BrandLogo } from './BrandLogo';
 import { CategoryBadge } from './CategoryBadge';
 import { CookieConsent, openCookiePreferences } from './CookieConsent';
-import { Deal, Brand, Category, BlogArticle, TopBannerConfig } from '../data/mockData';
+import { Deal, Brand, Category, BlogArticle, TopBannerConfig, hasCouponCode } from '../data/mockData';
 
 interface LayoutShellProps {
   currentPath: string;
@@ -124,7 +125,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
     { label: 'Recent Deal Alerts', path: '/alerts', icon: Bell, badge: 'Live' },
     { label: 'Popular Brands', path: '/brands', icon: Crown },
     { label: 'Categories', path: '/categories', icon: LayoutGrid },
-    { label: 'Student & Startup Perks', path: '/perks', icon: GraduationCap, badge: 'Up to 100% OFF' },
+    { label: 'Student & Startup Packs', path: '/packs', icon: GraduationCap, badge: 'Up to 100% OFF' },
     { label: 'Savings Guides', path: '/blog', icon: BookOpen },
     { label: 'Submit a Deal / Advertise', path: '/submit', icon: PlusCircle },
     { label: 'Admin Panel', path: '/admin', icon: SlidersHorizontal, badge: 'Manager' },
@@ -137,25 +138,23 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
         <aside
           aria-label="Announcement banner"
           className={cn(
-            'w-full text-xs sm:text-sm py-2 px-3 sm:px-6 relative z-50',
+            'w-full text-xs py-2 px-3 sm:px-6 relative z-50 transition-colors',
             topBanner.themeStyle === 'emerald'
               ? 'bg-emerald-600 text-white border-b border-emerald-500/40'
               : topBanner.themeStyle === 'amber'
               ? 'bg-amber-600 text-white border-b border-amber-500/40'
-              : topBanner.themeStyle === 'dark'
-              ? 'bg-slate-900 text-white border-b border-slate-800'
               : topBanner.themeStyle === 'gradient'
               ? 'bg-gradient-to-r from-blue-700 via-indigo-600 to-purple-700 text-white border-b border-indigo-500/30'
-              : 'bg-[#1565FF] text-white border-b border-blue-600/40'
+              : 'bg-slate-900 text-white dark:bg-slate-950 border-b border-slate-800'
           )}
         >
           <div className="w-full max-w-7xl mx-auto flex items-center justify-center gap-2 sm:gap-3 text-center min-w-0">
             {topBanner.badgeText && (
-              <span className="inline-flex items-center gap-1 font-bold uppercase tracking-wider text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full bg-white/20 text-white shrink-0">
+              <span className="inline-flex items-center gap-1 font-bold uppercase tracking-wider text-[10px] sm:text-[11px] px-2 py-0.5 rounded-full bg-white/15 text-white shrink-0">
                 {topBanner.badgeText}
               </span>
             )}
-            <span className="truncate font-medium text-white/95 text-xs sm:text-sm">
+            <span className="font-medium text-white/90 text-xs truncate max-w-[200px] xs:max-w-xs sm:max-w-none">
               {topBanner.message}
             </span>
             {topBanner.linkUrl && (
@@ -181,25 +180,25 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
                     onNavigate(topBanner.linkUrl);
                   }
                 }}
-                className="inline-flex items-center gap-1 font-bold underline underline-offset-2 hover:opacity-90 shrink-0 cursor-pointer ml-1 text-xs sm:text-sm"
+                className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 hover:text-blue-200 text-white shrink-0 cursor-pointer text-xs"
               >
-                <span>{topBanner.ctaText || 'Learn More'}</span>
-                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                <span>{topBanner.ctaText || 'Claim Deal'}</span>
+                <ExternalLink className="h-3 w-3 shrink-0" />
               </a>
             )}
           </div>
         </aside>
       )}
 
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-40 h-14 sm:h-16 w-full bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-6 flex items-center justify-between">
+      {/* Top Navbar with Glassmorphism & Tactile Polish */}
+      <header className="sticky top-0 z-40 h-14 sm:h-16 w-full backdrop-blur-md bg-white/90 dark:bg-slate-950/90 border-b border-slate-200/80 dark:border-slate-800/80 px-3.5 sm:px-6 flex items-center justify-between transition-colors shadow-[0_1px_3px_rgba(0,0,0,0.03)] dark:shadow-none">
         <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
           {/* Left: Hamburger Drawer + Brand Logo */}
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2.5 sm:gap-4">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 active:scale-95 transition-all cursor-pointer"
               aria-label="Open menu"
             >
               <Menu className="h-5 w-5" />
@@ -208,19 +207,19 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('/')}
-              className="flex items-center gap-2 cursor-pointer group"
+              className="flex items-center gap-2 cursor-pointer group active:scale-[0.98] transition-transform"
               aria-label="Couponify home"
             >
               <svg
                 viewBox="0 0 32 32"
-                className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600 shrink-0"
+                className="h-6 w-6 sm:h-7 sm:w-7 text-blue-600 shrink-0 group-hover:scale-105 transition-transform"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path d="M6 22L16 8L20 14L13 24L6 22Z" fill="currentColor" fillOpacity="0.8" />
                 <path d="M13 24L23 10L27 16L20 26L13 24Z" fill="currentColor" />
               </svg>
-              <span className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+              <span className="text-xl sm:text-2xl font-extrabold tracking-tight font-display text-slate-900 dark:text-slate-50">
                 Couponify
               </span>
             </button>
@@ -231,7 +230,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('/search')}
-              className="w-full h-10 px-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/60 dark:hover:bg-slate-900 text-xs sm:text-sm text-slate-500 dark:text-slate-400 flex items-center justify-between focus-visible:ring-2 focus-visible:ring-[#1565FF] cursor-pointer"
+              className="w-full h-10 px-3.5 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/60 dark:hover:bg-slate-900 text-xs sm:text-sm text-slate-500 dark:text-slate-400 flex items-center justify-between focus-visible:ring-2 focus-visible:ring-blue-600 active:scale-[0.99] transition-all cursor-pointer"
             >
               <span className="flex items-center gap-2.5 truncate">
                 <Search className="h-4 w-4 text-slate-400 shrink-0" />
@@ -243,13 +242,13 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             </button>
           </div>
 
-          {/* Right: Actions (Notification, Categories Grid, Theme Toggle) */}
-          <div className="flex items-center gap-1 sm:gap-2">
+          {/* Right: Actions (Notification, Categories Grid, Admin, Theme Toggle) with balanced touch spacing */}
+          <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => onNavigate('/alerts')}
               className={cn(
-                'relative w-9 h-9 rounded-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors',
+                'relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 active:scale-95 cursor-pointer transition-all',
                 currentPath === '/alerts' && 'bg-blue-50 text-blue-600 dark:bg-blue-950/80 dark:text-blue-400'
               )}
               aria-label="Recent deals"
@@ -262,7 +261,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             <button
               type="button"
               onClick={() => setCategoriesDrawerOpen(true)}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 active:scale-95 cursor-pointer transition-all"
               aria-label="Browse Categories"
               title="Browse Categories"
             >
@@ -272,7 +271,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             <button
               type="button"
               onClick={() => onNavigate('/admin')}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 active:scale-95 cursor-pointer transition-all"
               aria-label="Admin Management Panel"
               title="Admin Management Panel"
             >
@@ -282,7 +281,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             <button
               type="button"
               onClick={onToggleDarkMode}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 active:scale-95 cursor-pointer transition-all"
               aria-label={darkMode ? 'Light mode' : 'Dark mode'}
             >
               {darkMode ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5" />}
@@ -365,33 +364,6 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
             );
           })}
 
-          <Separator className="my-4" />
-
-          <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">
-            About & Trust
-          </p>
-
-          {[
-            { label: 'Mission & About', path: '/about' },
-            { label: 'Contact & Support', path: '/contact' },
-            { label: 'Affiliate Disclosure', path: '/terms' },
-            { label: 'Privacy Policy', path: '/privacy' },
-          ].map((item) => (
-            <motion.button
-              key={item.path}
-              variants={drawerItemVariants}
-              whileHover={{ x: 2 }}
-              type="button"
-              onClick={() => {
-                onNavigate(item.path);
-                setMobileMenuOpen(false);
-              }}
-              className="text-left px-3.5 py-2 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer"
-            >
-              {item.label}
-            </motion.button>
-          ))}
-
           {/* Mobile Drawer Dedicated Dark Mode Switcher */}
           <div className="pt-3 border-t border-slate-200 dark:border-slate-800 mt-2 px-1">
             <button
@@ -456,7 +428,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
       <footer className="border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-950 pt-16 pb-14 transition-colors">
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Main Footer Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-8 pb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-10 lg:gap-12 pb-12">
             {/* Brand & Value Proposition Column (2 Cols on lg) */}
             <div className="lg:col-span-2 space-y-4">
               {/* Couponify Logo */}
@@ -481,9 +453,6 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
                   <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
                     Couponify
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/40">
-                    SaaS Deals
-                  </span>
                 </div>
               </button>
 
@@ -491,15 +460,6 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal max-w-sm">
                 The ultimate collection of free digital services, developer tools, and exclusive deals.
               </p>
-
-              {/* Real-Time Live Status Pill */}
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span>Active Database · 500+ Verified Deals</span>
-              </div>
 
               {/* Social & Community Channels with Telegram Lucide Icon */}
               <div className="flex items-center gap-2.5 pt-1">
@@ -533,257 +493,250 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
               </div>
             </div>
 
-            {/* Column 2: Categories */}
-            <div className="space-y-3.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-                Categories
-              </h3>
-              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/categories/ai-tools')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    AI Tools & LLMs
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/categories/cloud-hosting')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Cloud & Hosting
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/categories/dev-tools')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Developer Tools
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/categories/productivity')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Productivity
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/categories/design')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Design & Creative
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/categories')}
-                    className="font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer text-left inline-flex items-center gap-1"
-                  >
-                    <span>All 8 Categories</span>
-                    <ArrowRight className="h-3 w-3" />
-                  </button>
-                </li>
-              </ul>
-            </div>
+            {/* Responsive Navigation Sections Grid (Categories, Discover, Company, Legal) */}
+            <div className="lg:col-span-4 grid grid-cols-2 sm:grid-cols-4 gap-8 lg:gap-8">
+              {/* Column 1: Categories */}
+              <div className="space-y-3.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                  Categories
+                </h3>
+                <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/categories/ai-tools')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      AI Tools & LLMs
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/categories/cloud-hosting')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Cloud & Hosting
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/categories/dev-tools')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Developer Tools
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/categories/productivity')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Productivity
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/categories/design')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Design & Creative
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/categories')}
+                      className="font-medium text-blue-600 dark:text-blue-400 hover:underline cursor-pointer text-left inline-flex items-center gap-1"
+                    >
+                      <span>All 8 Categories</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
-            {/* Column 3: Discover & Perks */}
-            <div className="space-y-3.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-                Discover
-              </h3>
-              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/brands')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Top Tech Brands
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/perks')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Startup Credits Program
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/perks')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Student Perks & Grants
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/alerts')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Recent Alerts Feed
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/search')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Search Deals Catalog
-                  </button>
-                </li>
-              </ul>
-            </div>
+              {/* Column 2: Discover */}
+              <div className="space-y-3.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                  Discover
+                </h3>
+                <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/brands')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Top Tech Brands
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/packs')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Startup Credits Program
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/packs')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Student Packs & Grants
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/alerts')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Recent Alerts Feed
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/search')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Search Deals Catalog
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
-            {/* Column 4: Resources & Company */}
-            <div className="space-y-3.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-                Company
-              </h3>
-              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/about')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    About & Mission
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/blog')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Guides & Blog
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/submit')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Submit a Promo Code
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/submit')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Partner Advertising
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/contact')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Contact Support
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/admin')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Admin Portal
-                  </button>
-                </li>
-              </ul>
-            </div>
+              {/* Column 3: Company */}
+              <div className="space-y-3.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                  Company
+                </h3>
+                <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/about')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      About & Mission
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/blog')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Guides & Blog
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/submit')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Submit a Promo Code
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/submit')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Partner Advertising
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/contact')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Contact Support
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/admin')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Admin Portal
+                    </button>
+                  </li>
+                </ul>
+              </div>
 
-            {/* Column 5: Legal & Privacy */}
-            <div className="space-y-3.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-                Legal & Trust
-              </h3>
-              <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/terms')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Terms of Service
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/privacy')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Privacy Policy
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/about')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Editorial Standards
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate('/terms')}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Affiliate Disclosure
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={openCookiePreferences}
-                    className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
-                  >
-                    Cookie Preferences
-                  </button>
-                </li>
-              </ul>
+              {/* Column 4: Legal & Trust */}
+              <div className="space-y-3.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                  Legal & Trust
+                </h3>
+                <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/terms')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Terms of Service
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/privacy')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Privacy Policy
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/about')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Editorial Standards
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => onNavigate('/terms')}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Affiliate Disclosure
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={openCookiePreferences}
+                      className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    >
+                      Cookie Preferences
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
 
-          {/* Bottom Copyright & Trademark Bar */}
-          <div className="pt-8 border-t border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
-            <p className="text-center md:text-left">
+          {/* Bottom Copyright Bar */}
+          <div className="pt-8 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-center sm:text-left">
               © 2026 Couponify Technologies, Inc. All rights reserved. Hand-tested coupons, discounts & cloud credits.
             </p>
-            <div className="flex items-center gap-4 text-xs">
-              <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                <span>SSL Encrypted</span>
-              </span>
-              <span>·</span>
-              <span className="text-slate-500 dark:text-slate-400">FTC Compliant</span>
-              <span>·</span>
-              <span className="text-slate-500 dark:text-slate-400">Zero Spam</span>
-            </div>
           </div>
         </div>
       </footer>
@@ -835,61 +788,91 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
               </DialogDescription>
             </DialogHeader>
 
-            {/* High-Contrast Promo Code Reveal Box */}
-            <motion.div
-              animate={copiedCode ? { scale: [1, 1.02, 1] } : {}}
-              transition={{ duration: 0.3 }}
-              className={cn(
-                'rounded-xl sm:rounded-2xl border p-4 sm:p-5 transition-colors duration-300',
-                copiedCode
-                  ? 'border-emerald-500/50 bg-emerald-50/60 dark:bg-emerald-950/40'
-                  : 'border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/30'
-              )}
-            >
-              <div className="mb-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-                <span className="font-medium text-slate-900 dark:text-slate-100">Verified Promo Code</span>
-                <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                  {activeModalDeal.successRate}% Success ({activeModalDeal.clicks.toLocaleString()} uses)
-                </span>
+            {/* High-Contrast Promo Code Reveal or Direct Offer Box */}
+            {hasCouponCode(activeModalDeal) ? (
+              <motion.div
+                animate={copiedCode ? { scale: [1, 1.02, 1] } : {}}
+                transition={{ duration: 0.3 }}
+                className={cn(
+                  'rounded-xl sm:rounded-2xl border p-4 sm:p-5 transition-colors duration-300',
+                  copiedCode
+                    ? 'border-emerald-500/50 bg-emerald-50/60 dark:bg-emerald-950/40'
+                    : 'border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/30'
+                )}
+              >
+                <div className="mb-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                  <span className="font-medium text-slate-900 dark:text-slate-100">Verified Promo Code</span>
+                  <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
+                    {activeModalDeal.successRate}% Success ({activeModalDeal.clicks.toLocaleString()} uses)
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-lg sm:rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xs">
+                  <code className="text-center sm:text-left text-base sm:text-lg font-mono font-bold tracking-widest text-blue-600 dark:text-blue-400 select-all py-1 sm:py-0">
+                    {activeModalDeal.code}
+                  </code>
+                  <Button
+                    size="sm"
+                    variant={copiedCode ? 'emerald' : 'default'}
+                    onClick={() => handleCopyCode(activeModalDeal.code)}
+                    className="h-10 px-4 font-semibold rounded-lg focus-visible:ring-2 focus-visible:ring-[#1565FF] cursor-pointer"
+                  >
+                    <AnimatePresence mode="wait">
+                      {copiedCode ? (
+                        <motion.span
+                          key="copied"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="inline-flex items-center gap-1.5"
+                        >
+                          <Check className="h-4 w-4" />
+                          Copied!
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="copy"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="inline-flex items-center gap-1.5"
+                        >
+                          <Copy className="h-4 w-4" />
+                          Copy Code
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="rounded-xl sm:rounded-2xl border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/30 p-4 sm:p-5">
+                <div className="mb-2 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                  <span className="font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Direct Link • No Code Required
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-lg sm:rounded-xl border border-emerald-200 dark:border-emerald-800 bg-white dark:bg-slate-900 p-3 shadow-2xs">
+                  <div className="text-left">
+                    <div className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">
+                      Offer Activated Automatically
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      No promo code needed. Discount is attached directly to the partner link.
+                    </p>
+                  </div>
+                  <a
+                    href={activeModalDeal.officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="h-10 px-4 font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 shadow-xs cursor-pointer shrink-0"
+                  >
+                    <span>Claim Offer</span>
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                  </a>
+                </div>
               </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-lg sm:rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xs">
-                <code className="text-center sm:text-left text-base sm:text-lg font-mono font-bold tracking-widest text-blue-600 dark:text-blue-400 select-all py-1 sm:py-0">
-                  {activeModalDeal.code}
-                </code>
-                <Button
-                  size="sm"
-                  variant={copiedCode ? 'emerald' : 'default'}
-                  onClick={() => handleCopyCode(activeModalDeal.code)}
-                  className="h-10 px-4 font-semibold rounded-lg focus-visible:ring-2 focus-visible:ring-[#1565FF] cursor-pointer"
-                >
-                  <AnimatePresence mode="wait">
-                    {copiedCode ? (
-                      <motion.span
-                        key="copied"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="inline-flex items-center gap-1.5"
-                      >
-                        <Check className="h-4 w-4" />
-                        Copied!
-                      </motion.span>
-                    ) : (
-                      <motion.span
-                        key="copy"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="inline-flex items-center gap-1.5"
-                      >
-                        <Copy className="h-4 w-4" />
-                        Copy Code
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Button>
-              </div>
-            </motion.div>
+            )}
 
             {/* Redemption Steps */}
             <div className="space-y-2 text-left">
@@ -897,7 +880,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({
                 Quick Redemption Steps:
               </p>
               <ol className="space-y-1.5 text-xs text-slate-500 dark:text-slate-400 list-decimal list-inside">
-                {activeModalDeal.redemptionSteps.map((step, i) => (
+                {(hasCouponCode(activeModalDeal)
+                  ? activeModalDeal.redemptionSteps
+                  : [
+                      `Click "Continue to ${activeModalDeal.brandName}" to activate the direct promotion.`,
+                      `The ${activeModalDeal.valueBadge} savings will be automatically attached to your session.`,
+                      `Complete signup or checkout on ${activeModalDeal.brandName} to enjoy your verified savings!`,
+                    ]
+                ).map((step, i) => (
                   <li key={i} className="leading-relaxed">
                     {step}
                   </li>

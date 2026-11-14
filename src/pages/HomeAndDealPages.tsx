@@ -33,6 +33,8 @@ import {
   KeyRound,
   ArrowUpRight,
   Loader2,
+  Bookmark,
+  Share2,
 } from 'lucide-react';
 import {
   Card,
@@ -48,7 +50,14 @@ import { CategoryBadge } from '../components/CategoryBadge';
 import { DealCard } from '../components/DealCard';
 import { DealGridSkeleton } from '../components/DealGridSkeleton';
 import { useDealsLoading } from '../context/DealsLoadingContext';
-import { Deal, Category, Brand, FeaturedItemConfig } from '../data/mockData';
+import { useSavedDeals } from '../context/SavedDealsContext';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import {
+  dealGridContainerVariants,
+  dealCardItemVariants,
+  springTransition,
+} from '../utils/motionVariants';
+import { Deal, Category, Brand, FeaturedItemConfig, hasCouponCode } from '../data/mockData';
 
 export function getDealTypeHashtag(dealType?: Deal['dealType']): string {
   if (dealType === 'Free Credits') return '#Credits';
@@ -103,11 +112,21 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   // Home Page Deal Sections Pagination States
   const [verifiedPage, setVerifiedPage] = useState(1);
-  const [verifiedPageSize, setVerifiedPageSize] = useState(10);
+  const [verifiedPageSize, setVerifiedPageSize] = useState(9);
   const [blackFridayPage, setBlackFridayPage] = useState(1);
   const blackFridayPageSize = 4;
   const [newArrivalsPage, setNewArrivalsPage] = useState(1);
   const newArrivalsPageSize = 4;
+
+  // Trending Deals Carousel Ref & Navigation
+  const trendingScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollTrending = (direction: 'left' | 'right') => {
+    if (trendingScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -340 : 340;
+      trendingScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   // Reset pagination to page 1 and trigger seamless lazy fetch when category chip or sorting tab changes
   useEffect(() => {
@@ -167,9 +186,35 @@ export const HomePage: React.FC<HomePageProps> = ({
     }
   }, [activeFeaturedItems.length, currentFeaturedIndex]);
 
-  // Auto-advance carousel every 5 seconds when 2 or more featured deals exist (continuous rotation without hover pausing)
+  // Scroll-based loading triggers via useIntersectionObserver (freezeOnceVisible ensures only rendering once in viewport)
+  const [featuredRef, featuredVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
+
+  const [blackFridayRef, blackFridayVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
+
+  const [newArrivalsRef, newArrivalsVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
+
+  const [trendingRef, trendingVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
+
+  const [verifiedRef, verifiedVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
+
+  // Auto-advance carousel every 5 seconds when in viewport and 2 or more featured deals exist
   useEffect(() => {
-    if (activeFeaturedItems.length < 2) return;
+    if (activeFeaturedItems.length < 2 || !featuredVisible) return;
 
     const timer = setInterval(() => {
       setSlideDirection('next');
@@ -177,7 +222,7 @@ export const HomePage: React.FC<HomePageProps> = ({
     }, 5000);
 
     return () => clearInterval(timer);
-  }, [activeFeaturedItems.length]);
+  }, [activeFeaturedItems.length, featuredVisible]);
 
   const handleSelectFeaturedSlide = (idx: number) => {
     setSlideDirection(idx > currentFeaturedIndex ? 'next' : 'prev');
@@ -269,91 +314,83 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
-      {/* 1. Refined Hero Section with Subtle Background Texture & Ambient Glow */}
-      <section className="relative pt-6 pb-8 sm:pt-12 sm:pb-14 -mx-4 sm:mx-0 px-4 sm:px-6 border-b border-slate-200/70 dark:border-slate-800 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:16px_16px] dark:bg-[radial-gradient(#334155_1px,transparent_1px)] rounded-none sm:rounded-3xl">
+      {/* 1. Refined Hero Section with Tactile Dot Texture & Flush Alignment */}
+      <section className="relative -mt-4 sm:-mt-6 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 pt-6 pb-8 sm:pt-10 sm:pb-12 border-b border-slate-200/80 dark:border-slate-800 bg-gradient-to-b from-blue-50/50 via-white to-transparent dark:from-blue-950/20 dark:via-slate-950 dark:to-transparent overflow-hidden">
+        {/* Subtle dot matrix texture layer */}
+        <div className="pointer-events-none absolute inset-0 bg-grid-dots opacity-40 dark:opacity-20 [mask-image:radial-gradient(ellipse_at_top,black,transparent_75%)]" />
+
         {/* Soft top ambient glow */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-none sm:rounded-3xl">
-          <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-64 w-full max-w-xl rounded-full bg-[#1565FF]/8 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-full max-w-2xl h-80 bg-gradient-to-b from-blue-500/12 via-indigo-500/6 to-transparent blur-3xl rounded-full" />
         </div>
 
-        {/* Top Eyebrow & Live Status Row */}
-        <div className="flex flex-wrap items-center gap-2.5 mb-5">
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#D7E3FF]/50 border border-[#1565FF]/20 px-3 py-1 text-xs font-semibold text-[#1565FF] dark:bg-[#1565FF]/10 dark:border-[#1565FF]/30 dark:text-blue-400">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1565FF] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1565FF]" />
-            </span>
-            <span>500+ Hand-Tested Deals Active</span>
-          </span>
-
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span>Updated 2h ago</span>
-          </span>
-        </div>
-
-        {/* Editorial Display Headline & Wavy SVG Underline */}
-        <div className="space-y-1 text-left">
-          <h1 className="text-[36px] sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.035em] leading-[1.08] text-slate-900 dark:text-slate-50">
+        {/* Editorial Display Headline & Refined Curved Accent Underline */}
+        <div className="relative space-y-2 text-left">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-[1.12] sm:leading-[1.1]">
             Couponify — Digital Deals,{' '}
-            <span className="relative inline-block text-[#1565FF] pb-1">
+            <span className="relative inline-block text-blue-600 dark:text-blue-400 pb-1 font-display">
               Sorted.
               <svg
-                className="absolute -bottom-1 left-0 w-full h-2.5 text-[#1565FF]"
-                viewBox="0 0 120 12"
+                className="absolute -bottom-0.5 left-0 w-full h-2.5 text-blue-600 dark:text-blue-400 pointer-events-none"
+                viewBox="0 0 100 10"
                 fill="none"
                 preserveAspectRatio="none"
               >
                 <path
-                  d="M3 8 Q 15 2, 27 8 T 51 8 T 75 8 T 99 8 T 117 8"
+                  d="M2 6.5 C 20 10.5, 42 2.5, 62 8 C 78 11.5, 88 4, 98 6"
                   stroke="currentColor"
-                  strokeWidth="3.5"
+                  strokeWidth="2.8"
                   strokeLinecap="round"
                 />
               </svg>
             </span>
           </h1>
 
-          <p className="mt-4 max-w-xl text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
-            The best digital discounts, developer credits, SaaS coupons, and student perks, verified daily by engineers.
+          <p className="max-w-xl text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+            The best digital discounts, developer credits, SaaS coupons, and student packs — hand-tested and verified daily by engineers.
           </p>
         </div>
 
-        {/* Elevated Search Bar (Mobile-Optimized) */}
-        <div className="mt-6 relative flex items-center w-full max-w-2xl">
-          <Search className="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none" />
+        {/* Elevated Search Bar (Mobile & Desktop Responsive) */}
+        <div className="relative mt-6 flex items-center w-full max-w-2xl">
           <button
             type="button"
             onClick={() => onNavigate('/search')}
-            className="w-full h-12 sm:h-14 pl-11 pr-4 sm:pr-16 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] text-sm sm:text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:border-[#1565FF] focus:ring-4 focus:ring-[#1565FF]/10 transition-shadow flex items-center justify-between cursor-pointer text-left group overflow-hidden"
+            className="w-full h-13 sm:h-14 pl-12 pr-3 sm:pr-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-[0_4px_24px_rgb(0,0,0,0.04)] dark:shadow-none hover:border-blue-500/50 dark:hover:border-blue-500/50 hover:shadow-[0_8px_30px_rgb(59,130,246,0.08)] transition-all flex items-center justify-between cursor-pointer text-left group overflow-hidden active:scale-[0.99]"
           >
-            <div className="relative flex items-center h-full w-full overflow-hidden">
-              <span className="text-slate-400 text-sm sm:text-base font-normal shrink-0 mr-1.5">
+            <Search className="w-5 h-5 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 absolute left-4 transition-colors pointer-events-none" />
+            <div className="relative flex items-center h-full w-full overflow-hidden mr-2">
+              <span className="text-slate-400 dark:text-slate-500 text-sm sm:text-base font-normal shrink-0 mr-1.5">
                 Search
               </span>
               <div className="relative h-6 sm:h-7 flex-1 overflow-hidden flex items-center">
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={searchFlipperIndex}
-                    initial={{ y: 20, opacity: 0 }}
+                    initial={{ y: 14, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    exit={{ y: -20, opacity: 0 }}
-                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute left-0 text-slate-400 text-sm sm:text-base font-normal truncate max-w-full"
+                    exit={{ y: -14, opacity: 0 }}
+                    transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute left-0 text-slate-600 dark:text-slate-300 text-sm sm:text-base font-normal truncate max-w-full"
                   >
                     "{searchFlipperWords[searchFlipperIndex]}"
                   </motion.span>
                 </AnimatePresence>
               </div>
             </div>
-            <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-[11px] font-semibold text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-md border border-slate-200/80 dark:border-slate-700 absolute right-3.5">
-              ⌘K
-            </kbd>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="hidden sm:inline-flex items-center px-2.5 py-1 text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200/80 dark:border-slate-700 font-mono">
+                ⌘K
+              </span>
+              <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-xs transition-colors shrink-0">
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            </div>
           </button>
         </div>
 
-        {/* Scrollable Category Pills */}
-        <div className="mt-4 flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+        {/* Scrollable Category Chips with flush negative margin alignment & overscroll containment */}
+        <div className="relative mt-5 flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 scroll-pl-4 sm:scroll-pl-6 lg:scroll-pl-8 pb-1 overscroll-x-contain touch-pan-x">
           {[
             { id: 'all', label: 'All Deals', icon: Zap },
             { id: 'ai-tools', label: 'AI Tools', icon: Bot },
@@ -361,7 +398,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             { id: 'dev-tools', label: 'Dev Tools', icon: Terminal },
             { id: 'design-creative', label: 'Design', icon: Palette },
             { id: 'productivity', label: 'Productivity', icon: TrendingUp },
-            { id: 'student-startup', label: 'Student Perks', icon: GraduationCap },
+            { id: 'student-startup', label: 'Student Packs', icon: GraduationCap },
           ].map((chip) => {
             const isSelected = selectedCategoryChip === chip.id;
             const Icon = chip.icon;
@@ -371,10 +408,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 type="button"
                 onClick={() => setSelectedCategoryChip(chip.id)}
                 className={cn(
-                  'shrink-0 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-[#1565FF] cursor-pointer',
+                  'shrink-0 whitespace-nowrap focus-visible:ring-2 focus-visible:ring-blue-600 cursor-pointer active:scale-95 transition-all duration-150',
                   isSelected
-                    ? 'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-[#1565FF] text-white shadow-sm shadow-[#1565FF]/25'
-                    : 'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-blue-600 text-white shadow-sm shadow-blue-500/25 ring-1 ring-blue-600'
+                    : 'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/80 shadow-2xs'
                 )}
               >
                 <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -383,22 +420,37 @@ export const HomePage: React.FC<HomePageProps> = ({
             );
           })}
           {/* Proper trailing right-side padding after the last chip */}
-          <span className="shrink-0 w-2 sm:w-3 pointer-events-none" aria-hidden="true" />
+          <span className="shrink-0 w-3 sm:w-4 pointer-events-none" aria-hidden="true" />
         </div>
 
         {/* Balanced 3-Column Trust Metrics Bar */}
-        <div className="mt-6 grid grid-cols-3 divide-x divide-slate-200/80 dark:divide-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 py-3.5 px-2 text-center">
-          <div className="py-0.5 px-1">
-            <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">100% Tested</p>
-            <p className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">At checkout daily</p>
+        <div className="relative mt-6 grid grid-cols-3 divide-x divide-slate-200/80 dark:divide-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/90 dark:bg-slate-900/80 backdrop-blur-xs py-3 px-2 sm:px-4 text-center shadow-2xs">
+          <div className="py-1 px-1 sm:px-2 flex flex-col items-center">
+            <div className="flex items-center gap-1 text-slate-900 dark:text-slate-100 font-bold text-xs sm:text-sm tracking-tight">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+              <span>100% Tested</span>
+            </div>
+            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+              At checkout daily
+            </p>
           </div>
-          <div className="py-0.5 px-1">
-            <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">500+ Verified</p>
-            <p className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">SaaS discounts</p>
+          <div className="py-1 px-1 sm:px-2 flex flex-col items-center">
+            <div className="flex items-center gap-1 text-slate-900 dark:text-slate-100 font-bold text-xs sm:text-sm tracking-tight">
+              <Flame className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span>500+ Verified</span>
+            </div>
+            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+              SaaS discounts
+            </p>
           </div>
-          <div className="py-0.5 px-1">
-            <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">Zero Paywall</p>
-            <p className="text-[11px] sm:text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">Free code access</p>
+          <div className="py-1 px-1 sm:px-2 flex flex-col items-center">
+            <div className="flex items-center gap-1 text-slate-900 dark:text-slate-100 font-bold text-xs sm:text-sm tracking-tight">
+              <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span>Zero Paywall</span>
+            </div>
+            <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
+              Free code access
+            </p>
           </div>
         </div>
       </section>
@@ -435,7 +487,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         };
 
         return (
-          <div className="mt-6">
+          <div ref={featuredRef} className="mt-6">
             <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs text-left transition-colors">
               {/* Top Header Row */}
               <div className="flex items-center justify-between gap-3">
@@ -540,7 +592,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       })()}
 
       {/* 2.5. Black Friday Deals Section (Above New Arrivals) */}
-      <section className="space-y-4 pt-2">
+      <section ref={blackFridayRef} className="space-y-4 pt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-slate-700 dark:text-slate-300" />
@@ -589,77 +641,95 @@ export const HomePage: React.FC<HomePageProps> = ({
           })}
         </div>
 
-        {/* Vertical List of Deals (Same UI Flow as Recently Verified) with Shimmer Skeleton */}
-        {isSectionLoading('black-friday') ? (
+        {/* Vertical List of Deals (Original UI matching Screenshot 2) */}
+        {!blackFridayVisible || isSectionLoading('black-friday') ? (
           <DealGridSkeleton variant="list" count={blackFridayPageSize} />
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 pt-1">
-            {paginatedBlackFridayDeals.map((deal) => {
-              return (
-                <div
-                  key={deal.id}
-                  onClick={() => onRevealDeal(deal)}
-                  className="py-4 first:pt-2 last:pb-2 flex items-start gap-3.5 sm:gap-4.5 cursor-pointer group hover:bg-slate-50/70 dark:hover:bg-slate-900/50 rounded-xl px-2 -mx-2 transition-colors"
-                >
-                  {/* Left Column: Brand Logo + Badge ("+X Deals") */}
-                  <div className="shrink-0 flex flex-col items-center">
-                    <BrandLogo
-                      brandSlug={deal.brandSlug}
-                      brandName={deal.brandName}
-                      initials={deal.brandInitials}
-                      colorClass={deal.brandColor}
-                      size="md"
-                      className="w-12 h-12 rounded-xl shadow-2xs"
-                    />
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-semibold mt-1.5 whitespace-nowrap">
-                      +{deal.extraDealsCount || 2} {deal.extraDealsCount === 1 ? 'Deal' : 'Deals'}
-                    </span>
-                  </div>
-
-                  {/* Right Column: Metadata, Timestamp, Title & Snippet */}
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                      <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        {deal.brandName}
-                      </span>
-                      <span className="font-semibold text-blue-600 dark:text-blue-400">
-                        #BlackFriday
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {formatStatNumber(deal.views)}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <MousePointerClick className="h-3 w-3 text-slate-400" />
-                        {formatStatNumber(deal.clicks)} clicks
+          <motion.div
+            key={`${blackFridayTab}-${blackFridayPage}`}
+            variants={dealGridContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="divide-y divide-slate-100 dark:divide-slate-800 pt-1"
+          >
+            <AnimatePresence mode="popLayout">
+              {paginatedBlackFridayDeals.map((deal) => {
+                return (
+                  <motion.div
+                    layout="position"
+                    layoutId={`bf-deal-${deal.id}`}
+                    key={deal.id}
+                    variants={dealCardItemVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                    transition={springTransition}
+                    onClick={() => onRevealDeal(deal)}
+                    className="py-4 first:pt-2 last:pb-2 flex items-start gap-3.5 sm:gap-4.5 cursor-pointer group hover:bg-slate-50/70 dark:hover:bg-slate-900/50 rounded-xl px-2 -mx-2 transition-colors"
+                  >
+                    {/* Left Column: Brand Logo + Badge ("+X Deals") */}
+                    <div className="shrink-0 flex flex-col items-center">
+                      <BrandLogo
+                        brandSlug={deal.brandSlug}
+                        brandName={deal.brandName}
+                        initials={deal.brandInitials}
+                        colorClass={deal.brandColor}
+                        size="md"
+                        className="w-12 h-12 rounded-xl shadow-2xs"
+                      />
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-semibold mt-1.5 whitespace-nowrap">
+                        +{deal.extraDealsCount || 2} {deal.extraDealsCount === 1 ? 'Deal' : 'Deals'}
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {deal.verifiedAgo}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-medium">
-                        Limited Time
-                      </span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200/80 dark:border-red-900/50">
-                        {deal.valueBadge}
-                      </span>
+                    {/* Right Column: Metadata, Timestamp, Title & Snippet */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+                          {deal.brandName}
+                        </span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          #BlackFriday
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {formatStatNumber(deal.views)}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <MousePointerClick className="h-3 w-3 text-slate-400" />
+                          {formatStatNumber(deal.clicks)} clicks
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {deal.verifiedAgo}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400 font-medium">
+                          Limited Time
+                        </span>
+                      </div>
+
+                      <div className="pt-0.5">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border border-red-200/80 dark:border-red-900/50">
+                          {deal.valueBadge}
+                        </span>
+                      </div>
+
+                      <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-left pt-0.5">
+                        {deal.title}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 text-left pt-0.5">
+                        {deal.shortDescription}
+                      </p>
                     </div>
-
-                    <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-left pt-0.5">
-                      {deal.title}
-                    </h3>
-
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 text-left pt-0.5">
-                      {deal.shortDescription}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {/* Black Friday Deals Pagination Buttons */}
@@ -681,7 +751,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* 3. New Arrivals Section */}
-      <section className="space-y-4 pt-2">
+      <section ref={newArrivalsRef} className="space-y-4 pt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Star className="h-4 w-4 text-slate-700 dark:text-slate-300" />
@@ -704,58 +774,92 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         {/* Clean Stacked Cards for New Arrivals with Shimmer Skeleton */}
-        {isSectionLoading('new-arrivals') ? (
+        {!newArrivalsVisible || isSectionLoading('new-arrivals') ? (
           <DealGridSkeleton variant="stacked" count={newArrivalsPageSize} />
         ) : (
-          <div className="space-y-3">
-            {paginatedNewArrivals.map((deal) => (
-              <div
-                key={deal.id}
-                onClick={() => onRevealDeal(deal)}
-                className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-shadow cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-              >
-                <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
-                  <BrandLogo
-                    brandSlug={deal.brandSlug}
-                    brandName={deal.brandName}
-                    initials={deal.brandInitials}
-                    colorClass={deal.brandColor}
-                    size="md"
-                    className="h-11 w-11 shrink-0"
-                  />
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                      <span className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        {deal.brandName}
-                      </span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/50">
-                        New
-                      </span>
-                      {deal.isLimitedTime && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/80 dark:border-amber-900/50">
-                          Limited Time
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100 line-clamp-2 text-left">
-                      {deal.title}
-                    </h3>
-                  </div>
-                </div>
+          <motion.div
+            key={`new-arrivals-page-${newArrivalsPage}`}
+            variants={dealGridContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="space-y-3.5 sm:space-y-4"
+          >
+            <AnimatePresence mode="popLayout">
+              {paginatedNewArrivals.map((deal) => {
+                const cleanedVerifiedAgo = (deal.verifiedAgo || 'recently')
+                  .replace(/^Verified\s*/i, '')
+                  .trim();
 
-                {/* Value Callout on Desktop right, or full-width stacked on mobile */}
-                <div className="w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
-                  <span className="rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 px-3 py-1.5 text-xs font-semibold text-blue-600 dark:text-blue-400">
-                    {deal.valueBadge}
-                  </span>
-                  <span className="text-xs font-medium text-slate-400 flex items-center gap-1 sm:hidden">
-                    <span>View</span>
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                return (
+                  <motion.div
+                    layout="position"
+                    layoutId={`new-arrival-${deal.id}`}
+                    key={deal.id}
+                    variants={dealCardItemVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                    transition={springTransition}
+                    onClick={() => onRevealDeal(deal)}
+                    className="group rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 active:scale-[0.99] transition-all cursor-pointer text-left flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      {/* Top: Logo & Brand + Badge */}
+                      <div className="flex items-start gap-3.5">
+                        <BrandLogo
+                          brandSlug={deal.brandSlug}
+                          brandName={deal.brandName}
+                          initials={deal.brandInitials}
+                          colorClass={deal.brandColor}
+                          size="md"
+                          className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl shadow-2xs shrink-0 mt-0.5"
+                        />
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                              {deal.brandName}
+                            </span>
+                            <span className="inline-block max-w-full truncate text-[10.5px] sm:text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-200/80 dark:border-blue-900/60 px-2.5 py-0.5 rounded-md">
+                              {deal.valueBadge}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3 text-emerald-500 shrink-0" />
+                            <span>Verified {cleanedVerifiedAgo}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Title & Description */}
+                      <div className="space-y-1 pt-0.5">
+                        <h3 className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
+                          {deal.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                          {deal.shortDescription}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom CTA Button */}
+                    <div className="pt-2 mt-3.5">
+                      <button
+                        type="button"
+                        className="w-full h-10 sm:h-11 rounded-xl bg-slate-950 group-hover:bg-slate-800 dark:bg-white dark:group-hover:bg-slate-100 text-white dark:text-slate-950 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+                      >
+                        <span>{hasCouponCode(deal) ? 'Get Code' : 'Claim Deal'}</span>
+                        {hasCouponCode(deal) ? (
+                          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                        ) : (
+                          <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {/* New Arrivals Pagination Buttons */}
@@ -819,8 +923,8 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* 5. Trending Deals Section (Scroll Snap Carousel without collision pills) */}
-      <section className="space-y-4 pt-2">
+      {/* 5. Trending Deals Section (Original Scroll Snap Carousel UI) */}
+      <section ref={trendingRef} className="space-y-4 pt-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Flame className="h-4 w-4 text-slate-700 dark:text-slate-300" />
@@ -832,96 +936,102 @@ export const HomePage: React.FC<HomePageProps> = ({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={() => onNavigate('/brands')}
-            className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 inline-flex items-center gap-1 cursor-pointer"
-          >
-            <span>Show all</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Scroll Navigation Arrows */}
+            <div className="hidden sm:flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => scrollTrending('left')}
+                className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollTrending('right')}
+                className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => onNavigate('/brands')}
+              className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blue-600 inline-flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <span>Show all</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* Scroll Snapping Carousel (Cards w-[85vw] max-w-[320px] sm:w-[340px] shrink-0 snap-start) */}
-        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar">
-          {trendingList.map((deal) => (
-            <div
-              key={deal.id}
-              onClick={() => onRevealDeal(deal)}
-              className="w-[85vw] max-w-[320px] sm:w-[340px] shrink-0 snap-start rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 transition-shadow cursor-pointer flex flex-col justify-between space-y-3"
-            >
-              <div className="space-y-3">
-                {/* Header: Brand Logo & Value Badge */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        {/* Scroll Snap Carousel matching original UI */}
+        {!trendingVisible ? (
+          <DealGridSkeleton variant="carousel" count={4} />
+        ) : (
+          <div
+            ref={trendingScrollRef}
+            className="flex items-stretch gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0 scroll-pl-4 sm:scroll-pl-0 scroll-pr-4 sm:scroll-pr-0 pb-2 overscroll-x-contain touch-pan-x"
+          >
+            {trendingList.map((deal) => (
+              <div
+                key={deal.id}
+                onClick={() => onRevealDeal(deal)}
+                className="w-[84vw] min-w-[270px] max-w-[325px] sm:w-[320px] shrink-0 snap-start p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 active:scale-[0.99] transition-all text-left flex flex-col justify-between cursor-pointer group min-h-[220px]"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2.5">
                     <BrandLogo
                       brandSlug={deal.brandSlug}
                       brandName={deal.brandName}
                       initials={deal.brandInitials}
-                      size="sm"
-                      className="h-9 w-9 shrink-0"
+                      colorClass={deal.brandColor}
+                      size="md"
+                      className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl shadow-2xs shrink-0"
                     />
-                    <div className="min-w-0 flex-1">
-                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block truncate">
-                        {deal.brandName}
-                      </span>
-                    </div>
+                    <span
+                      title={deal.valueBadge}
+                      className="text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900/60 px-2.5 py-0.5 rounded-md shrink min-w-0 truncate max-w-[65%]"
+                    >
+                      {deal.valueBadge}
+                    </span>
                   </div>
 
-                  {deal.isLimitedTime && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold shrink-0 bg-red-50 text-red-700 border border-red-200/80 dark:bg-red-950/60 dark:text-red-300">
-                      Limited Time
+                  <div className="space-y-1 min-w-0">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      {deal.brandName}
                     </span>
-                  )}
+                    <h4 className="text-sm sm:text-[15px] font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
+                      {deal.title}
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 pt-0.5 leading-relaxed">
+                      {deal.shortDescription}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Clean Stacked Value Badge */}
-                <div className="w-full rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
+                  <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                    <Flame className="h-3.5 w-3.5" />
+                    Popular this week
+                  </span>
                   <span className="font-semibold text-blue-600 dark:text-blue-400">
-                    {deal.valueBadge}
+                    {getDealTypeHashtag(deal.dealType)}
                   </span>
                 </div>
-
-                {/* Deal Title (H3 line-clamp-2) */}
-                <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100 line-clamp-2 text-left">
-                  {deal.title}
-                </h3>
               </div>
-
-              {/* Bottom Metadata */}
-              <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
-                <div className="flex items-center gap-1.5">
-                  <TrendingUp className="h-3.5 w-3.5 text-blue-600 shrink-0" />
-                  <span>Popular this week</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MousePointerClick className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span>{deal.clicks >= 1000 ? `${(deal.clicks / 1000).toFixed(1)}k` : deal.clicks} clicks</span>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {/* End Carousel Card: "Explore All Deals" */}
-          <div
-            onClick={() => onNavigate('/brands')}
-            className="w-[85vw] max-w-[240px] sm:w-[260px] shrink-0 snap-start rounded-xl sm:rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 p-5 flex flex-col items-center justify-center text-center space-y-2 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <div className="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-950 flex items-center justify-center text-blue-600">
-              <ArrowRight className="h-5 w-5" />
-            </div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Explore All Brands
-            </p>
-            <p className="text-xs text-slate-500">
-              50+ more software deals
-            </p>
+            ))}
+            {/* Trailing spacer to preserve end padding on mobile scroll */}
+            <div className="shrink-0 w-3 sm:hidden pointer-events-none" aria-hidden="true" />
           </div>
-        </div>
+        )}
       </section>
 
       {/* 6. Recently Verified Section */}
-      <section id="recently-verified-section" className="space-y-4 pt-2 scroll-mt-20">
+      <section id="recently-verified-section" ref={verifiedRef} className="space-y-4 pt-2 scroll-mt-20">
         <div className="flex items-center gap-2">
           <Clock className="h-4 w-4 text-slate-700 dark:text-slate-300" />
           <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
@@ -956,75 +1066,90 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         {/* Vertical List of Deals with Shimmer Skeleton & Pagination */}
-        {isSectionLoading('verified-deals') ? (
+        {!verifiedVisible || isSectionLoading('verified-deals') ? (
           <DealGridSkeleton variant="list" count={verifiedPageSize} />
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 pt-1">
-            {paginatedVerifiedDeals.map((deal, idx) => {
-              return (
-                <div
-                  key={`${deal.id}-${idx}`}
-                  onClick={() => onRevealDeal(deal)}
-                  className="py-4 first:pt-2 last:pb-2 flex items-start gap-3.5 sm:gap-4.5 cursor-pointer group hover:bg-slate-50/70 dark:hover:bg-slate-900/50 rounded-xl px-2 -mx-2 transition-colors"
-                >
-                  {/* Left Column: Brand Logo + Badge ("+X Deals") */}
-                  <div className="shrink-0 flex flex-col items-center">
-                    <BrandLogo
-                      brandSlug={deal.brandSlug}
-                      brandName={deal.brandName}
-                      initials={deal.brandInitials}
-                      colorClass={deal.brandColor}
-                      size="md"
-                      className="w-12 h-12 rounded-xl shadow-2xs"
-                    />
-                    <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-semibold mt-1.5 whitespace-nowrap">
-                      +{deal.extraDealsCount || 1} {deal.extraDealsCount === 1 ? 'Deal' : 'Deals'}
-                    </span>
-                  </div>
-
-                  {/* Right Column: Metadata, Timestamp, Title & Snippet */}
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                      <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        {deal.brandName}
-                      </span>
-                      <span className="font-medium">
-                        {getDealTypeHashtag(deal.dealType)}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <Eye className="h-3 w-3" />
-                        {formatStatNumber(deal.views)}
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <MousePointerClick className="h-3 w-3 text-slate-400" />
-                        {formatStatNumber(deal.clicks)} clicks
+          <motion.div
+            key={`${recentlyVerifiedTab}-${selectedCategoryChip}-${verifiedPage}`}
+            variants={dealGridContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="divide-y divide-slate-100 dark:divide-slate-800 pt-1"
+          >
+            <AnimatePresence mode="popLayout">
+              {paginatedVerifiedDeals.map((deal) => {
+                return (
+                  <motion.div
+                    layout="position"
+                    layoutId={`verified-deal-${deal.id}`}
+                    key={deal.id}
+                    variants={dealCardItemVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                    transition={springTransition}
+                    onClick={() => onRevealDeal(deal)}
+                    className="py-4 first:pt-2 last:pb-2 flex items-start gap-3.5 sm:gap-4.5 cursor-pointer group hover:bg-slate-50/70 dark:hover:bg-slate-900/50 rounded-xl px-2 -mx-2 transition-colors"
+                  >
+                    {/* Left Column: Brand Logo + Badge ("+X Deals") */}
+                    <div className="shrink-0 flex flex-col items-center">
+                      <BrandLogo
+                        brandSlug={deal.brandSlug}
+                        brandName={deal.brandName}
+                        initials={deal.brandInitials}
+                        colorClass={deal.brandColor}
+                        size="md"
+                        className="w-12 h-12 rounded-xl shadow-2xs"
+                      />
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-semibold mt-1.5 whitespace-nowrap">
+                        +{deal.extraDealsCount || 1} {deal.extraDealsCount === 1 ? 'Deal' : 'Deals'}
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {deal.verifiedAgo}
-                      </span>
-                      {deal.isLimitedTime && (
-                        <span className="inline-flex items-center gap-1 text-red-600 font-medium">
-                          Limited Time
+                    {/* Right Column: Metadata, Timestamp, Title & Snippet */}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100">
+                          {deal.brandName}
                         </span>
-                      )}
+                        <span className="font-medium">
+                          {getDealTypeHashtag(deal.dealType)}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Eye className="h-3 w-3" />
+                          {formatStatNumber(deal.views)}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <MousePointerClick className="h-3 w-3 text-slate-400" />
+                          {formatStatNumber(deal.clicks)} clicks
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {deal.verifiedAgo}
+                        </span>
+                        {deal.isLimitedTime && (
+                          <span className="inline-flex items-center gap-1 text-red-600 font-medium">
+                            Limited Time
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-left pt-0.5">
+                        {deal.title}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 text-left pt-0.5">
+                        {deal.shortDescription}
+                      </p>
                     </div>
-
-                    <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 text-left pt-0.5">
-                      {deal.title}
-                    </h3>
-
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2 text-left pt-0.5">
-                      {deal.shortDescription}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {/* Recently Verified Deals Pagination Buttons */}
@@ -1047,7 +1172,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               setVerifiedPage(1);
               triggerLazyFetch('verified-deals', 200);
             }}
-            pageSizeOptions={[10, 20, 30]}
+            pageSizeOptions={[6, 9, 12, 18]}
             itemLabel="verified deals"
           />
         </div>
@@ -1061,7 +1186,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
 
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
-          Get exclusive software perks, cloud credits, and verified digital deals straight to your inbox weekly.
+          Get exclusive software packs, cloud credits, and verified digital deals straight to your inbox weekly.
         </p>
 
         {newsletterSubscribed ? (
@@ -1120,8 +1245,16 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
 }) => {
   const [codeRevealed, setCodeRevealed] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [topCopied, setTopCopied] = useState(false);
+  const [shared, setShared] = useState(false);
   const [voteState, setVoteState] = useState<'up' | 'down' | null>(null);
   const { isSectionLoading } = useDealsLoading();
+
+  // Scroll-based loading trigger for Related Deals in coupon details
+  const [relatedRef, relatedVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
 
   const relatedDeals = allDeals
     .filter((d) => d.categorySlug === deal.categorySlug && d.id !== deal.id)
@@ -1143,6 +1276,35 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const handleTopCopy = () => {
+    onIncrementClick(deal.id);
+    navigator.clipboard?.writeText(window.location.href).catch(() => {});
+    setTopCopied(true);
+    setTimeout(() => setTopCopied(false), 2500);
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: `${deal.brandName} - ${deal.title}`,
+      text: `Get ${deal.valueBadge} on ${deal.brandName} with Couponify!`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err: any) {
+        if (err?.name === 'AbortError') return;
+      }
+    }
+
+    // Fallback if native Web Share is unavailable
+    navigator.clipboard?.writeText(window.location.href).catch(() => {});
+    setShared(true);
+    setTimeout(() => setShared(false), 2500);
+  };
+
   const displayedSuccessRate =
     voteState === 'up'
       ? Math.min(100, deal.successRate + 1)
@@ -1151,28 +1313,94 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
       : deal.successRate;
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
-      {/* Breadcrumb */}
-      <Breadcrumb
-        onNavigate={onNavigate}
-        items={[
-          { label: 'Home', path: '/' },
-          { label: 'Deals', path: '/' },
-          { label: deal.categoryName, path: `/categories/${deal.categorySlug}` },
-          { label: deal.brandName },
-        ]}
-      />
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-6 sm:space-y-8 overflow-x-hidden">
+      {/* Top Header Row: Breadcrumb & Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <Breadcrumb
+          onNavigate={onNavigate}
+          items={[
+            { label: 'Home', path: '/' },
+            { label: 'Deals', path: '/' },
+            { label: deal.categoryName, path: `/categories/${deal.categorySlug}` },
+            { label: deal.brandName },
+          ]}
+        />
+
+        {/* Action Buttons: Copy Link & Share */}
+        <div className="flex items-center gap-2 self-start sm:self-auto -mt-3 sm:-mt-5">
+          <button
+            type="button"
+            onClick={handleTopCopy}
+            className={cn(
+              'h-8.5 min-w-[76px] px-3 rounded-xl border text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs overflow-hidden',
+              topCopied
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                : 'border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+            )}
+            title="Copy shareable link"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              {topCopied ? (
+                <motion.span
+                  key="copied"
+                  initial={{ opacity: 0, y: 3, scale: 0.92 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -3, scale: 0.92 }}
+                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                  className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold"
+                >
+                  <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>Copied!</span>
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="copy"
+                  initial={{ opacity: 0, y: 3, scale: 0.92 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -3, scale: 0.92 }}
+                  transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                  className="inline-flex items-center gap-1.5"
+                >
+                  <Copy className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                  <span>Copy</span>
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleShare}
+            className="h-8.5 px-3 rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer active:scale-95 shadow-2xs"
+            title="Share this deal"
+          >
+            {shared ? (
+              <>
+                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                <span>Link Copied</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="h-3.5 w-3.5" />
+                <span>Share</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
 
       {/* Responsive Grid: Main Content + Sticky Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
         {/* Main Content (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 space-y-6 shadow-2xs">
-            <div className="flex items-start gap-4">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 shadow-2xs text-left">
+            {/* Top Brand & Metadata Header (Strictly responsive, zero overflow) */}
+            <div className="flex items-start gap-3.5 sm:gap-4.5">
               <button
                 type="button"
                 onClick={() => onNavigate(`/brands/${deal.brandSlug}`)}
-                className="cursor-pointer shrink-0"
+                className="cursor-pointer shrink-0 mt-0.5"
+                aria-label={`View ${deal.brandName} brand`}
               >
                 <BrandLogo
                   brandSlug={deal.brandSlug}
@@ -1180,16 +1408,17 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
                   initials={deal.brandInitials}
                   colorClass={deal.brandColor}
                   size="lg"
-                  className="h-14 w-14 rounded-xl"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl shadow-2xs"
                 />
               </button>
 
               <div className="min-w-0 flex-1 space-y-1.5">
+                {/* Brand Name, Category & Verified Status */}
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => onNavigate(`/brands/${deal.brandSlug}`)}
-                    className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-50 hover:text-blue-600 transition-colors cursor-pointer"
+                    className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-50 hover:text-blue-600 transition-colors cursor-pointer truncate"
                   >
                     {deal.brandName}
                   </button>
@@ -1199,107 +1428,189 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
                     size="xs"
                     onClick={() => onNavigate(`/categories/${deal.categorySlug}`)}
                   />
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200/80 dark:border-emerald-800/80 shrink-0">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/80 dark:border-emerald-800/80 shrink-0">
                     <ShieldCheck className="h-3 w-3" />
                     Verified
                   </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold text-blue-700 bg-blue-50 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/80 dark:border-blue-900/50 shrink-0">
-                    {deal.valueBadge}
-                  </span>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Verified promo code · {deal.dealType}
+
+                {/* Quiet Metadata Line */}
+                <p className="text-xs text-slate-500 dark:text-slate-400 pt-0.5 flex items-center gap-1.5 flex-wrap">
+                  <span>{hasCouponCode(deal) ? `Verified ${deal.dealType.toLowerCase()}` : 'Direct Promotion • No Code Needed'}</span>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
+                  <span>Tested {deal.verifiedAgo}</span>
+                  <span className="text-slate-300 dark:text-slate-600">•</span>
+                  <span>{deal.clicks.toLocaleString()} claims</span>
                 </p>
               </div>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
+            {/* Deal Title */}
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-50 leading-snug break-words">
               {deal.title}
             </h1>
 
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+            {/* Short Description */}
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
               {deal.shortDescription}
             </p>
 
-            {/* Large Interactive Promo Code Box */}
-            <div className="rounded-xl sm:rounded-2xl border border-blue-500/30 bg-blue-50/50 dark:bg-blue-950/30 p-5 space-y-3">
-              <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
-                <span className="font-semibold text-slate-900 dark:text-slate-100">Exclusive Promo Code</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                  {displayedSuccessRate}% Success Rate
-                </span>
+            {/* Large Interactive Offer / Promo Box */}
+            {hasCouponCode(deal) ? (
+              <div className="rounded-2xl border border-blue-200/80 dark:border-blue-900/60 bg-gradient-to-b from-blue-50/60 via-blue-50/20 to-transparent dark:from-blue-950/30 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 lg:p-6 space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                    <KeyRound className="h-3.5 w-3.5 text-blue-600" />
+                    <span>Coupon Code</span>
+                  </span>
+                </div>
+
+                {/* Inner Code Reveal Card */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-xl border border-dashed border-blue-300 dark:border-blue-800 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shadow-2xs">
+                  <div className="flex flex-col items-center sm:items-start justify-center min-w-0 flex-1 px-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-0.5">
+                      Coupon Code
+                    </span>
+                    <code className="text-center sm:text-left text-lg sm:text-xl font-mono font-bold tracking-widest text-blue-600 dark:text-blue-400 select-all">
+                      {codeRevealed ? deal.code : `${deal.code.slice(0, 4)}••••••`}
+                    </code>
+                  </div>
+
+                  <Button
+                    size="default"
+                    variant={copied ? 'emerald' : 'default'}
+                    onClick={handleCopy}
+                    className="h-11 sm:h-12 px-6 font-semibold rounded-xl focus-visible:ring-2 focus-visible:ring-blue-600 active:scale-[0.98] transition-all cursor-pointer shadow-xs shrink-0"
+                  >
+                    <AnimatePresence mode="wait" initial={false}>
+                      {copied ? (
+                        <motion.span
+                          key="copied"
+                          initial={{ opacity: 0, y: 3, scale: 0.92 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -3, scale: 0.92 }}
+                          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                          className="inline-flex items-center gap-2 text-sm"
+                        >
+                          <Check className="h-4 w-4 text-white" />
+                          <span>Copied!</span>
+                        </motion.span>
+                      ) : (
+                        <motion.span
+                          key="copy"
+                          initial={{ opacity: 0, y: 3, scale: 0.92 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -3, scale: 0.92 }}
+                          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                          className="inline-flex items-center gap-2 text-sm"
+                        >
+                          <Copy className="h-4 w-4" />
+                          <span>{codeRevealed ? 'Copy Code' : 'Reveal & Copy Code'}</span>
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </Button>
+                </div>
+
+                {/* Code Box Footer Stats (Responsive wrapping) */}
+                <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-blue-100 dark:border-blue-900/40">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <span>Tested {deal.verifiedAgo} by editorial team</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 tabular-nums">
+                    <MousePointerClick className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <span>{deal.clicks.toLocaleString()} successful redemptions</span>
+                  </span>
+                </div>
               </div>
+            ) : (
+              <div className="rounded-2xl border border-emerald-200/80 dark:border-emerald-900/60 bg-gradient-to-b from-emerald-50/60 via-emerald-50/20 to-transparent dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 lg:p-6 space-y-3.5 shadow-xs">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>Direct Promotion • No Code Required</span>
+                  </span>
+                </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-lg sm:rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xs">
-                <code className="text-center sm:text-left text-base sm:text-lg font-mono font-bold tracking-widest text-blue-600 dark:text-blue-400 select-all py-1 sm:py-0">
-                  {codeRevealed ? deal.code : `${deal.code.slice(0, 4)}••••••`}
-                </code>
+                {/* Inner Direct Claim Card */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3.5 rounded-xl border border-emerald-200 dark:border-emerald-800/80 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shadow-2xs">
+                  <div className="flex flex-col items-center sm:items-start justify-center min-w-0 flex-1 px-2">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-0.5">
+                      Offer Activation
+                    </span>
+                    <div className="text-center sm:text-left text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                      Offer Activated Automatically
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 text-center sm:text-left">
+                      No coupon code required. Discount is activated directly through the partner link.
+                    </p>
+                  </div>
 
-                <Button
-                  size="default"
-                  variant={copied ? 'emerald' : 'default'}
-                  onClick={handleCopy}
-                  className="h-10 px-5 font-semibold rounded-lg sm:rounded-xl focus-visible:ring-2 focus-visible:ring-[#1565FF] cursor-pointer"
-                >
-                  <AnimatePresence mode="wait">
-                    {copied ? (
-                      <motion.span
-                        key="copied"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="inline-flex items-center gap-1.5"
-                      >
-                        <Check className="h-4 w-4" />
-                        Copied to Clipboard!
-                      </motion.span>
-                    ) : (
-                      <motion.span
-                        key="copy"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="inline-flex items-center gap-1.5"
-                      >
-                        <Copy className="h-4 w-4" />
-                        {codeRevealed ? 'Copy Code' : 'Reveal & Copy Code'}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
-                </Button>
+                  <a
+                    href={deal.officialUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => onIncrementClick(deal.id)}
+                    className="h-11 sm:h-12 px-6 font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm inline-flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-emerald-500 active:scale-[0.98] transition-all cursor-pointer shadow-xs shrink-0"
+                  >
+                    <span>Claim Deal on {deal.brandName}</span>
+                    <ArrowUpRight className="h-4 w-4" />
+                  </a>
+                </div>
+
+                {/* Offer Box Footer Stats */}
+                <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 pt-1 border-t border-emerald-100 dark:border-emerald-900/40">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <span>Tested {deal.verifiedAgo} by editorial team</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 tabular-nums">
+                    <MousePointerClick className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <span>{deal.clicks.toLocaleString()} successful redemptions</span>
+                  </span>
+                </div>
               </div>
+            )}
 
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                <span>Tested {deal.verifiedAgo} by editor</span>
-                <span className="inline-flex items-center gap-1">
-                  <MousePointerClick className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span>{deal.clicks.toLocaleString()} successful redemptions</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Redemption Instructions */}
-            <div className="space-y-3 pt-2">
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
+            {/* Redemption Instructions (Numbered steps) */}
+            <div className="space-y-3.5 pt-3">
+              <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
                 How to Redeem this Deal
               </h2>
-              <ol className="space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 list-decimal list-inside leading-relaxed">
-                {deal.redemptionSteps.map((step, idx) => (
-                  <li key={idx} className="leading-relaxed">
-                    {step}
-                  </li>
+              <div className="space-y-2.5">
+                {(hasCouponCode(deal)
+                  ? deal.redemptionSteps
+                  : [
+                      `Click "Claim Deal on ${deal.brandName}" to open the official offer page.`,
+                      `The ${deal.valueBadge} discount or credit will be automatically applied to your session.`,
+                      `Complete signup or checkout on ${deal.brandName} to enjoy your verified savings!`,
+                    ]
+                ).map((step, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-xs sm:text-sm text-slate-700 dark:text-slate-300 text-left"
+                  >
+                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                      {idx + 1}
+                    </span>
+                    <span className="leading-relaxed flex-1">{step}</span>
+                  </div>
                 ))}
-              </ol>
+              </div>
             </div>
 
-            {/* Terms and Restrictions */}
-            <div className="space-y-3 pt-2 border-t border-slate-200/80 dark:border-slate-800">
-              <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
+            {/* Terms & Conditions */}
+            <div className="space-y-3 pt-3 border-t border-slate-200/80 dark:border-slate-800">
+              <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
                 Terms & Conditions
               </h2>
-              <ul className="space-y-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 list-disc list-inside leading-relaxed">
+              <ul className="space-y-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed text-left">
                 {(deal.eligibility || ['Valid for registered accounts. Redeemable during checkout.']).map((term: string, idx: number) => (
-                  <li key={idx}>{term}</li>
+                  <li key={idx} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                    <span>{term}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -1308,55 +1619,59 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
 
         {/* Sticky Sidebar (4 cols) */}
         <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-20">
-          <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-2xs">
-            <h3 className="text-[15px] sm:text-base font-semibold leading-snug text-slate-900 dark:text-slate-100">
+          <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-2xs text-left">
+            <h3 className="text-[15px] sm:text-base font-bold text-slate-900 dark:text-slate-100">
               Deal Verification Status
             </h3>
 
-            <div className="space-y-2.5 text-xs text-slate-600 dark:text-slate-400">
-              <div className="flex items-center justify-between">
-                <span>Status</span>
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">Verified Active</span>
+            <div className="space-y-3 text-xs text-slate-600 dark:text-slate-400 divide-y divide-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-slate-500">Status</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  Verified Active
+                </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span>Last Tested</span>
-                <span>{deal.verifiedAgo}</span>
+              <div className="flex items-center justify-between pt-2.5">
+                <span className="text-slate-500">Last Tested</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">{deal.verifiedAgo}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span>Success Rate</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{displayedSuccessRate}%</span>
+              <div className="flex items-center justify-between pt-2.5">
+                <span className="text-slate-500">Success Rate</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{displayedSuccessRate}%</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-1.5">
+              <div className="flex items-center justify-between pt-2.5">
+                <span className="text-slate-500 flex items-center gap-1">
                   <MousePointerClick className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                   <span>Total Clicks</span>
                 </span>
-                <span className="tabular-nums">{deal.clicks.toLocaleString()}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">{deal.clicks.toLocaleString()}</span>
               </div>
             </div>
 
+            {/* Visit Official Site Action */}
             <a
               href={deal.officialUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full h-10 px-4 rounded-lg sm:rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm inline-flex items-center justify-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-[#1565FF]"
+              className="w-full h-11 sm:h-12 px-4 rounded-xl bg-slate-950 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-950 font-semibold text-sm inline-flex items-center justify-center gap-2 shadow-xs active:scale-[0.98] transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-blue-600"
             >
               <span>Visit Official Site</span>
               <ExternalLink className="h-4 w-4" />
             </a>
 
-            {/* Did this code work? Feedback */}
-            <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 space-y-2 text-center">
-              <p className="text-xs text-slate-500">Did this coupon work for you?</p>
+            {/* Feedback Thumbs */}
+            <div className="pt-3 border-t border-slate-200/80 dark:border-slate-800 space-y-2.5 text-center">
+              <p className="text-xs text-slate-500">Did this deal work for you?</p>
               <div className="flex items-center justify-center gap-2">
                 <button
                   type="button"
                   onClick={() => setVoteState('up')}
                   className={cn(
-                    'h-9 px-3 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer',
+                    'h-9 px-3.5 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer active:scale-95',
                     voteState === 'up'
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-700'
+                      : 'border-slate-200/90 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                   )}
                 >
                   <ThumbsUp className="h-3.5 w-3.5" />
@@ -1366,10 +1681,10 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
                   type="button"
                   onClick={() => setVoteState('down')}
                   className={cn(
-                    'h-9 px-3 rounded-lg border text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer',
+                    'h-9 px-3.5 rounded-xl border text-xs font-semibold inline-flex items-center gap-1.5 transition-all cursor-pointer active:scale-95',
                     voteState === 'down'
-                      ? 'bg-red-50 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-300'
-                      : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                      ? 'bg-red-50 text-red-700 border-red-300 dark:bg-red-950/80 dark:text-red-300 dark:border-red-700'
+                      : 'border-slate-200/90 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                   )}
                 >
                   <ThumbsDown className="h-3.5 w-3.5" />
@@ -1381,25 +1696,131 @@ export const DealDetailPage: React.FC<DealDetailPageProps> = ({
         </div>
       </div>
 
-      {/* Related Deals Fluid Grid with Shimmer Skeleton */}
-      <section className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800">
-        <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
-          Related Deals in {deal.categoryName}
-        </h2>
+      {/* Related Deals Section with Custom High-Polish Cards */}
+      <section ref={relatedRef} className="space-y-4 pt-6 border-t border-slate-200/80 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 text-left">
+              Related Deals in {deal.categoryName}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-left">
+              More verified software discounts and packs in {deal.categoryName}
+            </p>
+          </div>
 
-        {isSectionLoading('related-deals') ? (
-          <DealGridSkeleton count={3} />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {fallbackRelated.map((relDeal) => (
-              <DealCard
-                key={relDeal.id}
-                deal={relDeal}
-                onNavigate={onNavigate}
-                onRevealDeal={onRevealDeal}
-              />
+          <button
+            type="button"
+            onClick={() => onNavigate(`/categories/${deal.categorySlug}`)}
+            className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 inline-flex items-center gap-1 self-start sm:self-auto cursor-pointer transition-colors"
+          >
+            <span>View all in {deal.categoryName}</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
+
+        {!relatedVisible || isSectionLoading('related-deals') ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs text-left space-y-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-xl skeleton-shimmer shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-4 w-24 rounded skeleton-shimmer" />
+                    <div className="h-3.5 w-32 rounded skeleton-shimmer" />
+                  </div>
+                </div>
+                <div className="h-4 w-4/5 rounded skeleton-shimmer mt-2" />
+                <div className="h-3 w-36 rounded skeleton-shimmer" />
+                <div className="h-10 w-full rounded-xl skeleton-shimmer mt-3" />
+              </div>
             ))}
           </div>
+        ) : (
+          <motion.div
+            variants={dealGridContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5"
+          >
+            <AnimatePresence mode="popLayout">
+              {fallbackRelated.map((relDeal) => {
+                const cleanedVerified = (relDeal.verifiedAgo || 'recently')
+                  .replace(/^Verified\s*/i, '')
+                  .trim();
+
+                return (
+                  <motion.div
+                    layout="position"
+                    layoutId={`rel-deal-${relDeal.id}`}
+                    key={relDeal.id}
+                    variants={dealCardItemVariants}
+                    initial="hidden"
+                    animate="show"
+                    exit="exit"
+                    transition={springTransition}
+                    onClick={() => onNavigate(`/deals/${relDeal.slug}`)}
+                    className="group rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-slate-300 dark:hover:border-slate-700 active:scale-[0.99] transition-all cursor-pointer text-left flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      {/* Top: Logo & Brand + Badge */}
+                      <div className="flex items-start gap-3.5">
+                        <BrandLogo
+                          brandSlug={relDeal.brandSlug}
+                          brandName={relDeal.brandName}
+                          initials={relDeal.brandInitials}
+                          colorClass={relDeal.brandColor}
+                          size="md"
+                          className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl shadow-2xs shrink-0 mt-0.5"
+                        />
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">
+                              {relDeal.brandName}
+                            </span>
+                            <span className="inline-block max-w-full truncate text-[10.5px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400 border border-blue-200/80 dark:border-blue-900/60 px-2 py-0.5 rounded-md">
+                              {relDeal.valueBadge}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3 text-emerald-500 shrink-0" />
+                            <span>Verified {cleanedVerified}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Title & Description */}
+                      <div className="space-y-1 pt-0.5">
+                        <h3 className="text-sm sm:text-[15px] font-bold text-slate-900 dark:text-slate-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug">
+                          {relDeal.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                          {relDeal.shortDescription}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom CTA Button */}
+                    <div className="pt-2 mt-3.5">
+                      <button
+                        type="button"
+                        className="w-full h-10 rounded-xl bg-slate-950 group-hover:bg-slate-800 dark:bg-white dark:group-hover:bg-slate-100 text-white dark:text-slate-950 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-colors cursor-pointer"
+                      >
+                        <span>{hasCouponCode(relDeal) ? 'Get Code' : 'Claim Deal'}</span>
+                        {hasCouponCode(relDeal) ? (
+                          <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
+                        ) : (
+                          <ArrowUpRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        )}
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
         )}
       </section>
     </div>

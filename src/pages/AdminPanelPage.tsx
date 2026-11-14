@@ -345,7 +345,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
               Website Management & Content Engine
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">
-              Control digital coupons, brand profiles, vertical categories, cloud perks, and create deals with a dedicated live preview studio page.
+              Control digital coupons, brand profiles, vertical categories, cloud packs, and create deals with a dedicated live preview studio page.
             </p>
           </div>
 
@@ -403,7 +403,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
             { id: 'overview', label: 'Analytics & Health', icon: LayoutDashboard },
             { id: 'brands', label: `Brands (${brands.length})`, icon: Building2 },
             { id: 'categories', label: `Categories (${categories.length})`, icon: FolderTree },
-            { id: 'perks', label: `Startup Perks (${perks.length})`, icon: GraduationCap },
+            { id: 'perks', label: `Startup Packs (${perks.length})`, icon: GraduationCap },
           ].map((tab) => {
             const isSelected = activeTab === tab.id;
             const Icon = tab.icon;
@@ -761,7 +761,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
                 },
                 {
                   label: 'Vultr Cloud Credits',
-                  badgeText: 'Flash Perk',
+                  badgeText: 'Flash Pack',
                   message: 'Get $200 free cloud compute & AI credits across top verified platforms',
                   ctaText: 'Claim Credits',
                   linkUrl: 'https://vultr.com',
@@ -787,11 +787,11 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
                   themeStyle: 'primary' as const,
                 },
                 {
-                  label: 'Perks & Grants Directory',
+                  label: 'Packs & Grants Directory',
                   badgeText: 'Grants Hub',
                   message: 'Over $150,000 in startup cloud credits & student discounts now available',
-                  ctaText: 'Explore Perks',
-                  linkUrl: '/perks',
+                  ctaText: 'Explore Packs',
+                  linkUrl: '/packs',
                   isExternal: false,
                   themeStyle: 'emerald' as const,
                 },
@@ -851,7 +851,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
                   type="text"
                   value={bannerForm.badgeText}
                   onChange={(e) => setBannerForm({ ...bannerForm, badgeText: e.target.value })}
-                  placeholder="e.g. Flash Perk, Limited Time, Black Friday"
+                  placeholder="e.g. Flash Pack, Limited Time, Black Friday"
                   className="w-full h-10 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -893,7 +893,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
                     type="text"
                     value={bannerForm.linkUrl}
                     onChange={(e) => setBannerForm({ ...bannerForm, linkUrl: e.target.value })}
-                    placeholder="https://vultr.com or /perks or /deals/..."
+                    placeholder="https://vultr.com or /packs or /deals/..."
                     className="w-full h-10 pl-3.5 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <Globe className="h-4 w-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
@@ -1294,7 +1294,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
                         {previewItem.title || 'Spotlight Deal Headline'}
                       </h3>
                       <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-                        {previewItem.description || 'Description of the partner discount or software perk...'}
+                        {previewItem.description || 'Description of the partner discount or software pack...'}
                       </p>
 
                       <div className="mt-4 w-full h-11 rounded-xl bg-slate-950 dark:bg-white text-white dark:text-slate-950 text-sm font-semibold inline-flex items-center justify-center gap-2 shadow-xs">
@@ -1558,7 +1558,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
                   rows={2}
                   value={featuredForm.description}
                   onChange={(e) => handleUpdateForm({ ...featuredForm, description: e.target.value })}
-                  placeholder="Explain the value proposition, software features, and perk savings..."
+                  placeholder="Explain the value proposition, software features, and pack savings..."
                   className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -1823,20 +1823,20 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
       )}
 
       {/* =========================================================================
-          TAB 5: PERKS & GRANTS MANAGEMENT
+          TAB 5: PACKS & GRANTS MANAGEMENT
           ========================================================================= */}
       {activeTab === 'perks' && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-50">
-              Startup Infrastructure & Student Perks ({perks.length})
+              Startup Infrastructure & Student Packs ({perks.length})
             </h2>
             <button
               type="button"
-              onClick={() => onNavigate('/perks')}
+              onClick={() => onNavigate('/packs')}
               className="text-xs font-semibold text-blue-600 hover:underline"
             >
-              View User Perks Page →
+              View User Packs Page →
             </button>
           </div>
 
@@ -1848,7 +1848,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    {p.programType === 'startup' ? 'Startup Credits' : 'Student Perk'}
+                    {p.programType === 'startup' ? 'Startup Credits' : 'Student Pack'}
                   </span>
                   <span className="font-bold text-emerald-600 text-xs bg-emerald-50 dark:bg-emerald-950 px-2.5 py-0.5 rounded">
                     {p.maxValue}
@@ -2243,7 +2243,7 @@ export const AdminPanelPage: React.FC<AdminPanelPageProps> = ({
               { key: 'home', label: 'Home Page (/)' },
               { key: 'categories', label: 'Categories (/categories)' },
               { key: 'brands', label: 'Brands Directory (/brands)' },
-              { key: 'perks', label: 'Startup & Student Perks (/perks)' },
+              { key: 'perks', label: 'Startup & Student Packs (/packs)' },
               { key: 'blog', label: 'Savings Guides (/blog)' },
               { key: 'alerts', label: 'Recent Deal Alerts (/alerts)' },
               { key: 'search', label: 'Search Page (/search)' },

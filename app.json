@@ -1,0 +1,35 @@
+{
+  "name": "Couponify",
+  "description": "Verified SaaS promo codes, startup cloud credits, student freebies, and exclusive software discounts.",
+  "keywords": [
+    "react",
+    "vite",
+    "typescript",
+    "express",
+    "saas",
+    "deals"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment mode",
+      "value": "production"
+    },
+    "NPM_CONFIG_PRODUCTION": {
+      "description": "Ensure devDependencies are installed during build before pruning",
+      "value": "false"
+    },
+    "GEMINI_API_KEY": {
+      "description": "Optional Gemini API key if using server-side AI features",
+      "required": false
+    },
+    "APP_URL": {
+      "description": "Public Heroku app URL (e.g., https://your-app.herokuapp.com)",
+      "required": false
+    }
+  }
+}

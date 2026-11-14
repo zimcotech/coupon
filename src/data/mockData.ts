@@ -32,6 +32,28 @@ export interface Deal {
   redemptionSteps: string[];
 }
 
+/**
+ * Checks whether a deal requires a coupon code or is a direct link/automatic discount.
+ */
+export function hasCouponCode(deal?: Partial<Deal> | null): boolean {
+  if (!deal) return false;
+  if (deal.isCodeRequired === false) return false;
+  if (!deal.code) return false;
+  const trimmed = deal.code.trim();
+  if (
+    !trimmed ||
+    trimmed.toUpperCase() === 'NO CODE' ||
+    trimmed.toUpperCase() === 'NO_CODE' ||
+    trimmed.toUpperCase() === 'AUTOMATIC' ||
+    trimmed.toUpperCase() === 'NONE' ||
+    trimmed.toUpperCase() === 'LINK ONLY' ||
+    trimmed.toUpperCase() === 'DIRECT LINK'
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export interface BrandPricingTier {
   planName: string;
   targetAudience: string;
@@ -218,13 +240,13 @@ export type SeoConfigMap = Record<string, SeoPageConfig>;
 
 export const DEFAULT_SEO_CONFIGS: SeoConfigMap = {
   home: {
-    title: 'Couponify — Verified SaaS & AI Discounts, Promo Codes & Startup Perks (2026)',
+    title: 'Couponify — Verified SaaS & AI Discounts, Promo Codes & Startup Packs (2026)',
     description: 'Curated promo codes, startup credits, student freebies, and exclusive discounts on top AI, developer, and productivity tools.',
-    ogTitle: 'Couponify — Verified SaaS & AI Discounts, Promo Codes & Startup Perks (2026)',
+    ogTitle: 'Couponify — Verified SaaS & AI Discounts, Promo Codes & Startup Packs (2026)',
     ogDescription: 'Curated promo codes, startup credits, student freebies, and exclusive discounts on top AI, developer, and productivity tools.',
     ogType: 'website',
     twitterCard: 'summary_large_image',
-    keywords: 'saas coupons, ai promo codes, developer credits, startup perks, cloud discounts, software deals',
+    keywords: 'saas coupons, ai promo codes, developer credits, startup packs, cloud discounts, software deals',
   },
   categories: {
     title: 'Software & Cloud Categories Directory | Couponify',
@@ -244,14 +266,23 @@ export const DEFAULT_SEO_CONFIGS: SeoConfigMap = {
     twitterCard: 'summary_large_image',
     keywords: 'brand directory, openai discount, vultr credits, elevenlabs promo code, cloudways deals',
   },
-  perks: {
-    title: 'Startup Grants, Incubator Credits & Student Perks | Couponify',
-    description: 'Claim up to $100,000 in free cloud hosting credits, student freebies, and founder infrastructure perks verified by engineers.',
-    ogTitle: 'Startup Grants, Incubator Credits & Student Perks | Couponify',
-    ogDescription: 'Claim up to $100,000 in free cloud hosting credits, student freebies, and founder infrastructure perks verified by engineers.',
+  packs: {
+    title: 'Startup Grants, Incubator Credits & Student Packs | Couponify',
+    description: 'Claim up to $100,000 in free cloud hosting credits, student freebies, and founder infrastructure packs verified by engineers.',
+    ogTitle: 'Startup Grants, Incubator Credits & Student Packs | Couponify',
+    ogDescription: 'Claim up to $100,000 in free cloud hosting credits, student freebies, and founder infrastructure packs verified by engineers.',
     ogType: 'website',
     twitterCard: 'summary_large_image',
-    keywords: 'startup credits, student perks, free cloud credits, incubator grants, aws activate, github student pack',
+    keywords: 'startup credits, student packs, free cloud credits, incubator grants, aws activate, github student pack',
+  },
+  perks: {
+    title: 'Startup Grants, Incubator Credits & Student Packs | Couponify',
+    description: 'Claim up to $100,000 in free cloud hosting credits, student freebies, and founder infrastructure packs verified by engineers.',
+    ogTitle: 'Startup Grants, Incubator Credits & Student Packs | Couponify',
+    ogDescription: 'Claim up to $100,000 in free cloud hosting credits, student freebies, and founder infrastructure packs verified by engineers.',
+    ogType: 'website',
+    twitterCard: 'summary_large_image',
+    keywords: 'startup credits, student packs, free cloud credits, incubator grants, aws activate, github student pack',
   },
   blog: {
     title: 'SaaS Savings Guides, Playbooks & Tech Purchasing Reviews | Couponify',
@@ -2703,6 +2734,119 @@ By sequencing your activations, you can cover your team's essential workflows fo
       'gamma-ai-pro-28-off-400-credits',
       'perplexity-pro-annual-discount-api-credits',
       'elevenlabs-creator-plan-discount-2026',
+    ],
+  },
+  {
+    slug: 'ai-code-assistants-cursor-vs-copilot-pricing-guide',
+    title: 'AI Code Assistants Breakdown: Cursor vs GitHub Copilot vs Claude Dev',
+    excerpt: 'A comprehensive cost, speed, and context window analysis of modern AI coding assistants with verified developer discounts.',
+    category: 'Dev Tools',
+    readingTime: '6 min read',
+    publishDate: 'Oct 02, 2026',
+    authorName: 'Elena Rostova',
+    authorRole: 'Senior Staff Engineer',
+    authorInitials: 'ER',
+    coverImage: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=80',
+    tags: ['DevTools', 'AI', 'Coding', 'Productivity'],
+    content: `# AI Code Assistants: Cost, Speed & Context Windows in 2026
+
+Modern engineering teams spend thousands each quarter on seat-based developer tool subscriptions. Choosing the right AI code assistant requires balancing raw model capability against monthly token expenditure.
+
+## 1. Comparing Monthly Costs & Quotas
+
+| Tool | Pro Tier | Fast Requests / Month | Opus / Claude 3.7 Access | Best Discount Available |
+|------|----------|-----------------------|-------------------------|-------------------------|
+| **Cursor Pro** | $20/mo | 500 fast requests | Included | Student & Open Source grant |
+| **GitHub Copilot** | $10/mo | Unlimited chat | Add-on | Free with Student Developer Pack |
+| **Claude Dev** | BYO API Key | Pay per token | Full tier access | $50 startup API credits |
+
+## 2. Token Budgeting Strategy
+
+For indie hackers and early teams, pairing GitHub Copilot for day-to-day autocomplete with Cursor or Claude API for complex refactoring reduces monthly spend by over 60%.`,
+    sections: [
+      {
+        heading: '1. Autonomous Coding vs Pair Programming',
+        body: 'While Copilot excels at inline tab-completions, Cursor multi-file agent edits save significant time on large refactors. Utilize developer perks to test both before committing to enterprise annual tiers.',
+      },
+    ],
+    relatedDealSlugs: [
+      'linear-pro-startup-team-discount-2026',
+      'supabase-pro-300-database-vector-credits',
+      'openai-api-startup-research-credits-2026',
+    ],
+  },
+  {
+    slug: 'cloud-credits-handbook-aws-gcp-digitalocean-2026',
+    title: 'The 2026 Cloud Credits Handbook: Unlocking $100K+ in Compute & Storage',
+    excerpt: 'How early-stage startups navigate accelerator credits, founder grants, and promotional coupons across Google Cloud, AWS, and DigitalOcean.',
+    category: 'Cloud & Hosting',
+    readingTime: '7 min read',
+    publishDate: 'Oct 14, 2026',
+    authorName: 'Marcus Chen',
+    authorRole: 'Cloud Infrastructure Architect',
+    authorInitials: 'MC',
+    coverImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Cloud', 'Hosting', 'Credits', 'Startups'],
+    content: `# The 2026 Cloud Credits Handbook for Founders
+
+Infrastructure costs can quickly drain early-stage capital. Cloud providers offer substantial credit programs to win lifetime developer loyalty, but sequencing these applications correctly is essential.
+
+## 1. The Right Order to Apply
+
+1. **DigitalOcean ($200 Credit)**: Valid for 60 days. Best for prototyping, staging databases, and initial container builds.
+2. **Google Cloud for Startups ($2,000 to $100,000)**: Grants access to Gemini Flash, Cloud SQL, and Google Kubernetes Engine.
+3. **UpCloud ($25 Promo Code)**: High-performance European and Asian storage nodes with 100% uptime SLA.
+
+## 2. Preventing Billing Surprises
+
+Always set up budget alerts at 25%, 50%, and 80% thresholds before deploying unmetered GPU workloads or distributed clusters.`,
+    sections: [
+      {
+        heading: '1. Maximizing Free Developer Tiers',
+        body: 'Before activating six-figure institutional grants that expire in 12 months, utilize no-commitment $200 trial credits from DigitalOcean and UpCloud to validate architectural assumptions.',
+      },
+    ],
+    relatedDealSlugs: [
+      'digitalocean-200-free-credits-promo',
+      'upcloud-25-credit-coupon-code',
+      'google-workspace-standard-annual-discount',
+    ],
+  },
+  {
+    slug: 'notion-linear-slack-saas-discount-stack',
+    title: 'The Lean Team Operating System: Saving 40% on Notion, Linear & Slack',
+    excerpt: 'Streamline task management, documentation, and async messaging on a bootstrapper budget using verified startup perks and bundle deals.',
+    category: 'Productivity',
+    readingTime: '5 min read',
+    publishDate: 'Nov 01, 2026',
+    authorName: 'Devon Brooks',
+    authorRole: 'Startup Operations Lead',
+    authorInitials: 'DB',
+    coverImage: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&q=80',
+    tags: ['Productivity', 'Notion', 'Linear', 'SaaS'],
+    content: `# The Lean Team Operating System: Notion, Linear & Slack
+
+The modern remote startup runs on a trifecta of tools: Notion for specs and knowledge, Linear for sprints, and Slack for real-time triage. Here is how to configure them efficiently while keeping per-seat costs low.
+
+## 1. Stack Breakdown and Savings Opportunities
+
+- **Notion Plus + AI**: $10/user/mo (Save up to $1,000 with startup applications).
+- **Linear Pro**: $8/user/mo (Annual billing discount + startup perks).
+- **Slack Pro**: Free tier carries 90 days of history; upgrade only when compliance or external connect channels are required.
+
+## 2. Async Best Practices
+
+Eliminate status meetings by linking Linear project boards directly into Notion documents and pushing release updates automatically to Slack channels.`,
+    sections: [
+      {
+        heading: '1. Designing an Integrated Workflow',
+        body: 'Sync Linear issues with Notion database relations so product specs stay permanently linked to active pull requests and deployed features.',
+      },
+    ],
+    relatedDealSlugs: [
+      'linear-pro-startup-team-discount-2026',
+      'notion-plus-ai-annual-coupon-code',
+      'google-workspace-standard-annual-discount',
     ],
   },
 ];

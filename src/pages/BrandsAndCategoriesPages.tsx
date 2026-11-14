@@ -26,6 +26,9 @@ import { Brand, Category, Deal } from '../data/mockData';
 import { DealCard } from '../components/DealCard';
 import { DealGridSkeleton } from '../components/DealGridSkeleton';
 import { useDealsLoading } from '../context/DealsLoadingContext';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import { motion, AnimatePresence } from 'framer-motion';
+import { dealGridContainerVariants } from '../utils/motionVariants';
 
 // ============================================================================
 // PAGE 3: ALL BRANDS DIRECTORY PAGE (/brands)
@@ -235,6 +238,13 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
   const { isSectionLoading, triggerLazyFetch } = useDealsLoading();
+
+  // Scroll-based loading trigger for Brand Deals grid
+  const [brandGridRef, brandGridVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
+
   const paginatedDeals = activeDeals.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
@@ -316,7 +326,7 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({
           </div>
 
           {/* Active Deals for this Brand */}
-          <section className="space-y-4">
+          <section ref={brandGridRef} className="space-y-4">
             <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
               <span>Verified Coupons & Offers for {brand.name}</span>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
@@ -324,19 +334,29 @@ export const BrandDetailPage: React.FC<BrandDetailPageProps> = ({
               </span>
             </h2>
 
-            {isSectionLoading('brand-deals') ? (
+            {!brandGridVisible || isSectionLoading('brand-deals') ? (
               <DealGridSkeleton count={Math.min(activeDeals.length || 4, pageSize)} gridColsClass="grid grid-cols-1 md:grid-cols-2 gap-4" />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {paginatedDeals.map((deal) => (
-                  <DealCard
-                    key={deal.id}
-                    deal={deal}
-                    onNavigate={onNavigate}
-                    onRevealDeal={onRevealDeal}
-                  />
-                ))}
-              </div>
+              <motion.div
+                key={`brand-deals-${brand.slug}-${currentPage}`}
+                variants={dealGridContainerVariants}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
+                <AnimatePresence mode="popLayout">
+                  {paginatedDeals.map((deal) => (
+                    <DealCard
+                      key={deal.id}
+                      layout="position"
+                      layoutId={`brand-deal-${deal.id}`}
+                      deal={deal}
+                      onNavigate={onNavigate}
+                      onRevealDeal={onRevealDeal}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
 
             {activeDeals.length > pageSize && (
@@ -419,7 +439,7 @@ export const CategoriesDirectoryPage: React.FC<CategoriesDirectoryPageProps> = (
           Explore Deals by Category
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-2xl">
-          Browse vetted discounts, API credits, developer subscriptions, and design tool perks across specialized software verticals.
+          Browse vetted discounts, API credits, developer subscriptions, and design tool packs across specialized software verticals.
         </p>
       </div>
 
@@ -487,6 +507,12 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
   const { isSectionLoading, triggerLazyFetch } = useDealsLoading();
+
+  // Scroll-based loading trigger for Category Deals grid
+  const [catGridRef, catGridVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
 
   const config = getCategoryBadgeConfig(category.slug);
   const Icon = config.icon;
@@ -570,20 +596,30 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
       </div>
 
       {/* Deals Grid (Fluid Grid) with Shimmer Skeleton */}
-      <section className="space-y-6">
-        {isSectionLoading('category-deals') ? (
+      <section ref={catGridRef} className="space-y-6">
+        {!catGridVisible || isSectionLoading('category-deals') ? (
           <DealGridSkeleton count={Math.min(filteredDeals.length || 6, pageSize)} />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {paginatedDeals.map((deal) => (
-              <DealCard
-                key={deal.id}
-                deal={deal}
-                onNavigate={onNavigate}
-                onRevealDeal={onRevealDeal}
-              />
-            ))}
-          </div>
+          <motion.div
+            key={`category-deals-${category.slug}-${filterType}-${currentPage}`}
+            variants={dealGridContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {paginatedDeals.map((deal) => (
+                <DealCard
+                  key={deal.id}
+                  layout="position"
+                  layoutId={`category-deal-${deal.id}`}
+                  deal={deal}
+                  onNavigate={onNavigate}
+                  onRevealDeal={onRevealDeal}
+                />
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
 
         {filteredDeals.length > pageSize && (

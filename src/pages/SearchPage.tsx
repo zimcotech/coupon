@@ -19,6 +19,9 @@ import { CategoryBadge } from '../components/CategoryBadge';
 import { DealCard } from '../components/DealCard';
 import { DealGridSkeleton } from '../components/DealGridSkeleton';
 import { useDealsLoading } from '../context/DealsLoadingContext';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import { motion, AnimatePresence } from 'framer-motion';
+import { dealGridContainerVariants } from '../utils/motionVariants';
 import { Deal, Brand, Category } from '../data/mockData';
 
 interface SearchPageProps {
@@ -50,6 +53,12 @@ export const SearchPage: React.FC<SearchPageProps> = ({
 
   // Global Deals Loading Hook
   const { isSectionLoading, triggerLazyFetch } = useDealsLoading();
+
+  // Scroll-based loading trigger for deals grid
+  const [dealGridRef, dealGridVisible] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: '150px 0px',
+    freezeOnceVisible: true,
+  });
 
   // Reset pagination to page 1 on search or filter change with smooth lazy fetch simulation
   useEffect(() => {
@@ -336,7 +345,7 @@ export const SearchPage: React.FC<SearchPageProps> = ({
 
         {/* 2. Deals Section (if activeTab is 'all' or 'deals') */}
         {(activeTab === 'all' || activeTab === 'deals') && matchingDeals.length > 0 && (
-          <div className="space-y-4">
+          <div ref={dealGridRef} className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <Tag className="w-4 h-4 text-blue-600" />
@@ -344,19 +353,29 @@ export const SearchPage: React.FC<SearchPageProps> = ({
               </h2>
             </div>
 
-            {isSectionLoading('search-deals') ? (
+            {!dealGridVisible || isSectionLoading('search-deals') ? (
               <DealGridSkeleton count={Math.min(dealPageSize, 6)} />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {paginatedDeals.map((deal) => (
-                  <DealCard
-                    key={deal.id}
-                    deal={deal}
-                    onNavigate={onNavigate}
-                    onRevealDeal={onRevealDeal}
-                  />
-                ))}
-              </div>
+              <motion.div
+                key={`${selectedCategory}-${selectedDealType}-${dealPage}-${query}`}
+                variants={dealGridContainerVariants}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+              >
+                <AnimatePresence mode="popLayout">
+                  {paginatedDeals.map((deal) => (
+                    <DealCard
+                      key={deal.id}
+                      layout="position"
+                      layoutId={`search-deal-${deal.id}`}
+                      deal={deal}
+                      onNavigate={onNavigate}
+                      onRevealDeal={onRevealDeal}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
 
             {matchingDeals.length > dealPageSize && (

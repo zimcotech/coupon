@@ -37,6 +37,7 @@ export interface PerksPageProps {
   onNavigate: (path: string) => void;
   onRevealDeal: (deal: Deal) => void;
 }
+export type PacksPageProps = PerksPageProps;
 
 export const PerksPage: React.FC<PerksPageProps> = ({
   perks,
@@ -58,7 +59,7 @@ export const PerksPage: React.FC<PerksPageProps> = ({
       {/* Breadcrumb */}
       <Breadcrumb
         onNavigate={onNavigate}
-        items={[{ label: 'Home', path: '/' }, { label: 'Perks & Grants' }]}
+        items={[{ label: 'Home', path: '/' }, { label: 'Packs & Grants' }]}
       />
 
       {/* Hero Header */}
@@ -75,7 +76,7 @@ export const PerksPage: React.FC<PerksPageProps> = ({
         </div>
 
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 leading-tight">
-          Startup Cloud Credits & Student Developer Perks
+          Startup Cloud Credits & Student Developer Packs
         </h1>
 
         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-3xl">
@@ -120,7 +121,7 @@ export const PerksPage: React.FC<PerksPageProps> = ({
             <span>
               {activeTab === 'startup'
                 ? 'Startup Credits Program Matrix'
-                : 'Student Developer & University Perks Matrix'}
+                : 'Student Developer & University Packs Matrix'}
             </span>
           </h2>
           <span className="text-xs text-slate-500 font-medium">
@@ -281,6 +282,20 @@ export const BlogPage: React.FC<BlogPageProps> = ({
       article.relatedDealSlugs?.includes(d.slug)
     );
 
+    // 3 Recommended blog posts based on the current article's category
+    const sameCategoryArticles = articles.filter(
+      (a) => a.category === article.category && a.slug !== article.slug
+    );
+    const displayedRelatedArticles =
+      sameCategoryArticles.length >= 3
+        ? sameCategoryArticles.slice(0, 3)
+        : [
+            ...sameCategoryArticles,
+            ...articles.filter(
+              (a) => a.slug !== article.slug && !sameCategoryArticles.some((r) => r.slug === a.slug)
+            ),
+          ].slice(0, 3);
+
     return (
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 space-y-8 overflow-x-hidden">
         <Breadcrumb
@@ -357,6 +372,71 @@ export const BlogPage: React.FC<BlogPageProps> = ({
                   onNavigate={onNavigate}
                   onRevealDeal={onRevealDeal}
                 />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Related Articles Section (3 Recommended Posts based on category) */}
+        {displayedRelatedArticles.length > 0 && (
+          <section className="space-y-4 max-w-4xl mx-auto pt-6 border-t border-slate-200/80 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 text-blue-600" />
+                  <span>Related Articles in {article.category}</span>
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Recommended guides and deal tutorials based on this category
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  onNavigate('/blog');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1 cursor-pointer"
+              >
+                <span>All Guides</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {displayedRelatedArticles.map((relArt) => (
+                <div
+                  key={relArt.slug}
+                  onClick={() => {
+                    onNavigate(`/blog/${relArt.slug}`);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="group rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 hover:border-blue-500/40 hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between text-left"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500">
+                      <span className="font-semibold text-blue-600 bg-blue-50 dark:bg-blue-950 px-2 py-0.5 rounded-full">
+                        {relArt.category}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {relArt.readingTime}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
+                      {relArt.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                      {relArt.excerpt}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+                    <span className="truncate">{relArt.authorName}</span>
+                    <span className="font-semibold text-blue-600 group-hover:translate-x-0.5 transition-transform inline-flex items-center gap-0.5 shrink-0">
+                      Read →
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
           </section>

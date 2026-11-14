@@ -589,12 +589,12 @@ export function Breadcrumb({
               <button
                 type="button"
                 onClick={() => onNavigate(item.path!)}
-                className="hover:text-foreground transition-colors cursor-pointer whitespace-nowrap"
+                className="hover:text-foreground transition-colors cursor-pointer truncate max-w-[110px] xs:max-w-[150px] sm:max-w-none"
               >
                 {item.label}
               </button>
             ) : (
-              <span className={cn('whitespace-nowrap', isLast && 'font-medium text-foreground')}>{item.label}</span>
+              <span className={cn('truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none', isLast && 'font-medium text-foreground')}>{item.label}</span>
             )}
             {!isLast && <span aria-hidden="true" className="text-muted-foreground/60">/</span>}
           </React.Fragment>

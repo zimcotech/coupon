@@ -114,14 +114,35 @@ export default function App() {
 
   const featuredItem = featuredItems[0] || DEFAULT_FEATURED_ITEM;
 
-  // Persistent articles state via localStorage
+  // Persistent articles state via localStorage (hydrated with latest production fields)
   const [articles, setArticles] = useState<BlogArticle[]>(() => {
     try {
       const saved = localStorage.getItem('couponify_articles');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          const defaultMap = new Map(BLOG_ARTICLES.map((a) => [a.slug, a]));
+          const savedSlugs = new Set(parsed.map((item: BlogArticle) => item.slug));
+          const newDefaults = BLOG_ARTICLES.filter((a) => !savedSlugs.has(a.slug));
+          const mergedSaved = parsed.map((item: BlogArticle) => {
+            const def = defaultMap.get(item.slug);
+            if (!def) return item;
+            return {
+              ...def,
+              ...item,
+              coverImage: item.coverImage || def.coverImage,
+              metaImage: item.metaImage || def.metaImage,
+              metaTitle: item.metaTitle || def.metaTitle,
+              metaDescription: item.metaDescription || def.metaDescription,
+              content: item.content || def.content,
+              tags: item.tags && item.tags.length > 0 ? item.tags : def.tags,
+              keyTakeaways:
+                item.keyTakeaways && item.keyTakeaways.length > 0
+                  ? item.keyTakeaways
+                  : def.keyTakeaways,
+            };
+          });
+          return [...mergedSaved, ...newDefaults];
         }
       }
     } catch {}
@@ -263,7 +284,7 @@ export default function App() {
     if (path === '/' || path === '') configKey = 'home';
     else if (path === '/categories' || path.startsWith('/categories/')) configKey = 'categories';
     else if (path === '/brands' || path.startsWith('/brands/')) configKey = 'brands';
-    else if (path === '/perks') configKey = 'perks';
+    else if (path === '/packs' || path === '/perks') configKey = 'packs';
     else if (path === '/blog' || path.startsWith('/blog/')) configKey = 'blog';
     else if (path === '/alerts') configKey = 'alerts';
     else if (path === '/search') configKey = 'search';
@@ -386,7 +407,11 @@ export default function App() {
   // Blog Articles Management Handlers
   const handleAddArticle = (newArticle: BlogArticle) => {
     setArticles((prev) => {
-      const updated = [newArticle, ...prev];
+      const base = newArticle.isFeatured
+        ? prev.map((a) => ({ ...a, isFeatured: false }))
+        : prev;
+      const filtered = base.filter((a) => a.slug !== newArticle.slug);
+      const updated = [newArticle, ...filtered];
       try {
         localStorage.setItem('couponify_articles', JSON.stringify(updated));
       } catch {}
@@ -394,9 +419,16 @@ export default function App() {
     });
   };
 
-  const handleUpdateArticle = (updatedArticle: BlogArticle) => {
+  const handleUpdateArticle = (updatedArticle: BlogArticle, originalSlug?: string) => {
     setArticles((prev) => {
-      const updated = prev.map((a) => (a.slug === updatedArticle.slug ? updatedArticle : a));
+      const targetSlug = originalSlug || updatedArticle.slug;
+      const base = updatedArticle.isFeatured
+        ? prev.map((a) => (a.slug === targetSlug ? a : { ...a, isFeatured: false }))
+        : prev;
+      const exists = base.some((a) => a.slug === targetSlug);
+      const updated = exists
+        ? base.map((a) => (a.slug === targetSlug ? updatedArticle : a))
+        : [updatedArticle, ...base];
       try {
         localStorage.setItem('couponify_articles', JSON.stringify(updated));
       } catch {}
@@ -565,8 +597,8 @@ export default function App() {
       );
     }
 
-    // Page 7: Startup & Student Perks Page (/perks)
-    if (cleanPath === '/perks') {
+    // Page 7: Startup & Student Packs Page (/packs)
+    if (cleanPath === '/packs' || cleanPath === '/perks') {
       return (
         <PerksPage
           perks={PERKS_DATA}

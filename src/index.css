@@ -51,9 +51,9 @@
 }
 
 @theme {
-  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Outfit", "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -75,6 +75,11 @@
   --color-ring: hsl(var(--ring));
 }
 
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-background);
@@ -85,11 +90,33 @@ body {
 
 h1, h2, h3, h4, .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
 }
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Subtle dot matrix texture for hero and featured card backgrounds */
+.bg-grid-dots {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.28) 1.25px, transparent 1.25px);
+  background-size: 20px 20px;
+}
+
+.dark .bg-grid-dots {
+  background-image: radial-gradient(rgba(148, 163, 184, 0.12) 1.25px, transparent 1.25px);
+  background-size: 20px 20px;
+}
+
+/* Micro-texture mesh overlay */
+.bg-radial-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.08) 0%, rgba(37, 99, 235, 0.02) 45%, transparent 70%);
+}
+
+.dark .bg-radial-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.03) 50%, transparent 75%);
 }
 
 .scrollbar-none::-webkit-scrollbar,

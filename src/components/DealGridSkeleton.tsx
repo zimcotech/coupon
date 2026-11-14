@@ -103,23 +103,33 @@ export const DealStackedRowSkeleton: React.FC<{ className?: string }> = ({ class
   return (
     <div
       className={cn(
-        'rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs pointer-events-none select-none flex flex-col sm:flex-row sm:items-center justify-between gap-4',
+        'rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs pointer-events-none select-none text-left flex flex-col justify-between',
         className
       )}
     >
-      <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
-        <div className="h-11 w-11 rounded-xl skeleton-shimmer shrink-0" />
-        <div className="min-w-0 flex-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-28 rounded-md skeleton-shimmer" />
-            <div className="h-4 w-12 rounded-full skeleton-shimmer" />
+      <div className="space-y-3">
+        {/* Top: Logo & Brand + Badge */}
+        <div className="flex items-start gap-3.5">
+          <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl skeleton-shimmer shrink-0 mt-0.5" />
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-24 rounded skeleton-shimmer" />
+              <div className="h-4 w-28 rounded skeleton-shimmer" />
+            </div>
+            <div className="h-3 w-24 rounded skeleton-shimmer" />
           </div>
-          <div className="h-4 w-4/5 rounded-md skeleton-shimmer" />
+        </div>
+
+        {/* Title & Description */}
+        <div className="space-y-1.5 pt-0.5">
+          <div className="h-4 w-5/6 rounded skeleton-shimmer" />
+          <div className="h-3 w-full rounded skeleton-shimmer" />
         </div>
       </div>
 
-      <div className="w-full sm:w-auto shrink-0 flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
-        <div className="h-7 w-24 rounded-lg skeleton-shimmer" />
+      {/* Button */}
+      <div className="pt-2 mt-3.5">
+        <div className="w-full h-10 sm:h-11 rounded-xl skeleton-shimmer" />
       </div>
     </div>
   );
@@ -127,7 +137,7 @@ export const DealStackedRowSkeleton: React.FC<{ className?: string }> = ({ class
 
 export interface DealGridSkeletonProps {
   count?: number;
-  variant?: 'grid' | 'list' | 'stacked';
+  variant?: 'grid' | 'list' | 'stacked' | 'carousel';
   className?: string;
   gridColsClass?: string;
 }
@@ -144,6 +154,42 @@ export const DealGridSkeleton: React.FC<DealGridSkeletonProps> = ({
   gridColsClass,
 }) => {
   const items = Array.from({ length: count }, (_, i) => i);
+
+  if (variant === 'carousel') {
+    return (
+      <div
+        className={cn(
+          'flex items-stretch gap-3.5 sm:gap-4 overflow-x-hidden -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 pointer-events-none select-none',
+          className
+        )}
+        aria-busy="true"
+        aria-label="Loading trending deals carousel..."
+      >
+        {items.map((i) => (
+          <div
+            key={i}
+            className="w-[84vw] min-w-[270px] max-w-[325px] sm:w-[320px] shrink-0 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs text-left flex flex-col justify-between min-h-[220px]"
+          >
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-2.5">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl skeleton-shimmer shrink-0" />
+                <div className="h-5 w-24 rounded-md skeleton-shimmer" />
+              </div>
+              <div className="space-y-1.5 pt-1">
+                <div className="h-3 w-20 rounded skeleton-shimmer" />
+                <div className="h-4 w-4/5 rounded skeleton-shimmer" />
+                <div className="h-3 w-full rounded skeleton-shimmer" />
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="h-3 w-24 rounded skeleton-shimmer" />
+              <div className="h-3 w-16 rounded skeleton-shimmer" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (variant === 'list') {
     return (
@@ -162,7 +208,7 @@ export const DealGridSkeleton: React.FC<DealGridSkeletonProps> = ({
   if (variant === 'stacked') {
     return (
       <div
-        className={cn('space-y-3', className)}
+        className={cn('space-y-3.5 sm:space-y-4', className)}
         aria-busy="true"
         aria-label="Loading new arrival deals..."
       >
